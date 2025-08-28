@@ -9,6 +9,7 @@ function App() {
     const [isLogin, setIsLogin] = useState(false);
     const [repositories, setRepositories] = useState([]);
     const [username, setUsername] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchLoginStatus = async () => {
@@ -22,6 +23,7 @@ function App() {
                 setUsername(name);
                 setRepositories(repos);
             }
+            setIsLoading(false);
         }
 
         fetchLoginStatus();
@@ -29,8 +31,8 @@ function App() {
 
     return (
         <div className="App">
-            <Header isLogin={isLogin} username={username} />
-            <RepositoryList repositories={repositories} />
+            {!isLoading && <Header isLogin={isLogin} username={username} />}
+            <RepositoryList repositories={repositories} isLoading={isLoading} />
         </div>
     )
 }
