@@ -8,8 +8,7 @@ export const checkLogin = async () => {
 
         return response.data;
     } catch (error) {
-        console.log(error);
-
+        console.error(error);
         return false;
     }
 }
@@ -22,7 +21,7 @@ export const getRepositories = async () => {
 
         return response.data
     } catch (error) {
-        console.log(error);
+        console.error(error);
     }
 }
 
@@ -34,8 +33,21 @@ export const getUsername = async () => {
 
         return response.data;
     } catch (error) {
-        console.log(error);
-
+        console.error(error);
         return false;
+    }
+}
+
+export const registerWebhook = async (repository: string) => {
+    try {
+        const response = await axios.post('/api/github/register', null, {
+            params: { repository },
+            withCredentials: true
+        });
+        
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
     }
 }
