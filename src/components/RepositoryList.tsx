@@ -1,4 +1,6 @@
 import { registerWebhook } from '../api/github';
+import { useState } from 'react';
+import PullRequestList from './PullRequestList';
 
 interface RepositoryResponse {
     repository: Repository;
@@ -20,6 +22,7 @@ interface RepositoryListProps {
 }
 
 const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, isLoading = false }) => {
+    const [selectedRepository, setSelectedRepository] = useState<string | null>(null);
     
     const RepositoryCard = ({ repo, isSkeleton = false }: { repo?: RepositoryResponse; isSkeleton?: boolean }) => {
         
@@ -33,11 +36,18 @@ const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, isLoading
                 console.error('웹훅 연결 오류:', error);
             }
         };
+
+        const handleCardClick = (repositoryName: string) => {
+            setSelectedRepository(repositoryName);
+        };
         
         return (
-            <div className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col ${
-                !isSkeleton ? 'group hover:shadow-xl transition-all duration-300 hover:-translate-y-1' : 'animate-pulse'
-            }`}>
+            <div 
+                className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col ${
+                    !isSkeleton ? 'group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer' : 'animate-pulse'
+                }`}
+                onClick={() => !isSkeleton && handleCardClick(repo!.repository.name)}
+            >
                 {/* 헤더 */}
                 <div className="p-6 border-b border-gray-50">
                     <div className="flex flex-col items-center space-y-3 mb-3">
@@ -73,10 +83,13 @@ const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, isLoading
                                         </span>
                                     ) : (
                                         <button 
-                                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 hover:bg-yellow-200 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            onClick={() => handleWebhookConnect(repo!.repository.name)}
+                                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 hover:bg-yellow-200 transition-colors duration-200"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleWebhookConnect(repo!.repository.name);
+                                            }}
                                         >
-                                           🔗 Webhook 연결
+                                            🔗 Webhook 연결
                                         </button>
                                     )}
                                 </>
@@ -121,6 +134,7 @@ const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, isLoading
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                                onClick={(e) => e.stopPropagation()}
                             >
                                 GitHub
                                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,6 +147,22 @@ const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, isLoading
             </div>
         );
     };
+    
+    // PR 리스트 페이지 표시
+    if (selectedRepository) {
+        const selectedRepo = repositories.find(repo => repo.repository.name === selectedRepository);
+        if (!selectedRepo) {
+            setSelectedRepository(null);
+            return null;
+        }
+        
+        return (
+            <PullRequestList 
+                repositoryName={selectedRepository}
+                onBack={() => setSelectedRepository(null)}
+            />
+        );
+    }
     
     const renderContent = () => {
         if (isLoading) {
