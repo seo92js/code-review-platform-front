@@ -19,8 +19,13 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({username}) => {
 
     return (
         <div className="flex flex-row items-center space-x-4">
-            <h2>{username}님 반갑습니다!</h2>
-            <button onClick={handleLogout}>Logout</button>
+            <h2 className="text-white text-base font-medium">{username}님 반갑습니다!</h2>
+            <button 
+                onClick={handleLogout}
+                className="bg-red-500/20 text-sm hover:bg-red-500/30 text-red-400 border border-red-500/30 hover:border-red-400 font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-red-500/25"
+            >
+                Logout
+            </button>
         </div>
     );
 }
