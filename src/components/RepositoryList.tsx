@@ -1,95 +1,101 @@
-import { registerWebhook } from '../api/github';
-import { useState } from 'react';
-import PullRequestList from './PullRequestList';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { checkLogin, getRepositories, getUsername, registerWebhook } from '../api/github';
+import Header from './Header';
+import LoadingSpinner from './LoadingSpinner';
+import type { RepositoryResponse } from '../types/repository';
 
-interface RepositoryResponse {
-    repository: Repository;
-    hasWebhook: boolean;
-}
+const RepositoryList: React.FC = () => {
+    const navigate = useNavigate();
+    const [isLogin, setIsLogin] = useState(false);
+    const [repositories, setRepositories] = useState<RepositoryResponse[]>([]);
+    const [username, setUsername] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-interface Repository {
-    id: number;
-    name: string;
-    private: boolean;
-    description: string;
-    html_url: string;
-    owner: string;
-}
-
-interface RepositoryListProps {
-    repositories: RepositoryResponse[];
-    isLoading?: boolean;
-}
-
-const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, isLoading = false }) => {
-    const [selectedRepository, setSelectedRepository] = useState<string | null>(null);
-    
-    const RepositoryCard = ({ repo, isSkeleton = false }: { repo?: RepositoryResponse; isSkeleton?: boolean }) => {
-        
-        const handleWebhookConnect = async (repositoryName: string) => {
+    useEffect(() => {
+        const fetchLoginStatus = async () => {
             try {
-                await registerWebhook(repositoryName);
-                alert('웹훅이 성공적으로 연결되었습니다!');
-                window.location.reload();
+                const status = await checkLogin();
+                setIsLogin(status);
+
+                if (status) {
+                    const repos = await getRepositories();
+                    const name = await getUsername();
+
+                    setUsername(name);
+                    setRepositories(repos);
+                }
             } catch (error) {
-                alert('웹훅 연결에 실패했습니다.');
-                console.error('웹훅 연결 오류:', error);
+                console.error('Error fetching data:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        const handleCardClick = (repositoryName: string) => {
-            setSelectedRepository(repositoryName);
-        };
-        
-        return (
+        fetchLoginStatus();
+    }, []);
+
+    const handleWebhookConnect = async (repositoryName: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await registerWebhook(repositoryName);
+            alert('웹훅이 성공적으로 연결되었습니다!');
+            window.location.reload();
+        } catch (error) {
+            alert('웹훅 연결에 실패했습니다.');
+            console.error('웹훅 연결 오류:', error);
+        }
+    };
+
+    const handleCardClick = (owner: string, repositoryName: string) => {
+        navigate(`/repos/${owner}/${repositoryName}`);
+    };
+
+    const RepositoryCard = ({ repo, isSkeleton = false }: { repo?: RepositoryResponse; isSkeleton?: boolean }) => {
+    return (
             <div 
-                className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col ${
-                    !isSkeleton ? 'group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer' : 'animate-pulse'
+                className={`bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border border-slate-700/50 overflow-hidden flex flex-col ${
+                    !isSkeleton ? 'group hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500/30' : 'animate-pulse'
                 }`}
-                onClick={() => !isSkeleton && handleCardClick(repo!.repository.name)}
+                onClick={() => !isSkeleton && handleCardClick(repo!.repository.owner, repo!.repository.name)}
             >
-                {/* 헤더 */}
-                <div className="p-6 border-b border-gray-50">
+                {/* Header section */}
+                <div className="p-6 border-b border-slate-700/50">
                     <div className="flex flex-col items-center space-y-3 mb-3">
                         <div className="flex-1 min-w-0">
                             {isSkeleton ? (
-                                <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                                <div className="h-6 bg-slate-700 rounded w-3/4"></div>
                             ) : (
-                                <h3 className="text-black font-bold truncate">
+                                <h3 className="text-white font-bold truncate">
                                     {repo!.repository.name}
                                 </h3>
                             )}
                         </div>
-                        
                         <div className="flex items-center space-x-2">
                             {isSkeleton ? (
                                 <>
-                                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-                                    <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                                    <div className="h-6 bg-slate-700 rounded-full w-16"></div>
+                                    <div className="h-6 bg-slate-700 rounded-full w-20"></div>
                                 </>
                             ) : (
                                 <>
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                        repo!.repository.private 
-                                            ? 'bg-red-100 text-red-800 border border-red-200' 
-                                            : 'bg-green-100 text-green-800 border border-green-200'
+                                        repo!.repository.private
+                                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                                     }`}>
                                         {repo!.repository.private ? '🔒 Private' : '🌍 Public'}
                                     </span>
-                                    
                                     {repo!.hasWebhook ? (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                                             🔗 Webhook 연결됨
                                         </span>
                                     ) : (
-                                        <button 
-                                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 hover:bg-yellow-200 transition-colors duration-200"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleWebhookConnect(repo!.repository.name);
-                                            }}
+                                        <button
+                                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 hover:border-orange-400 hover:text-orange-300 transition-all duration-200"
+                                            onClick={(e) => handleWebhookConnect(repo!.repository.name, e)}
                                         >
-                                            🔗 Webhook 연결
+                                            🔗 Webhook 연결하기
                                         </button>
                                     )}
                                 </>
@@ -97,43 +103,42 @@ const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, isLoading
                         </div>
                     </div>
                 </div>
-                
-                {/* 설명 */}
+
+                {/* Description section */}
                 <div className="p-6 flex-1">
                     {isSkeleton ? (
                         <div className="space-y-2">
-                            <div className="h-4 bg-gray-200 rounded w-full"></div>
-                            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                            <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+                            <div className="h-4 bg-slate-700 rounded w-full"></div>
+                            <div className="h-4 bg-slate-700 rounded w-5/6"></div>
+                            <div className="h-4 bg-slate-700 rounded w-4/6"></div>
                         </div>
                     ) : (
-                        <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
+                        <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">
                             {repo!.repository.description || '저장소에 대한 설명이 없습니다.'}
                         </p>
                     )}
                 </div>
-                
-                {/* 푸터 */}
-                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 mt-auto">
+
+                {/* Footer section */}
+                <div className="px-6 py-4 bg-slate-800/50 border-t border-slate-700/50 mt-auto">
                     {isSkeleton ? (
                         <div className="flex items-center justify-between">
-                            <div className="h-4 bg-gray-200 rounded w-20"></div>
-                            <div className="h-8 bg-gray-200 rounded-lg w-24"></div>
+                            <div className="h-4 bg-slate-700 rounded w-20"></div>
+                            <div className="h-8 bg-slate-700 rounded-lg w-24"></div>
                         </div>
                     ) : (
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <div className="flex items-center space-x-2 text-sm text-gray-400">
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                                 </svg>
                                 <span>{repo!.repository.owner}</span>
                             </div>
-                            
-                            <a 
-                                href={repo!.repository.html_url} 
-                                target="_blank" 
+                            <a
+                                href={repo!.repository.html_url}
+                                target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-400 bg-blue-500/20 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 hover:border-blue-400 hover:text-blue-300 transition-all duration-200"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 GitHub
@@ -147,53 +152,22 @@ const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, isLoading
             </div>
         );
     };
-    
-    // PR 리스트 페이지 표시
-    if (selectedRepository) {
-        const selectedRepo = repositories.find(repo => repo.repository.name === selectedRepository);
-        if (!selectedRepo) {
-            setSelectedRepository(null);
-            return null;
-        }
-        
-        return (
-            <PullRequestList 
-                repositoryName={selectedRepository}
-                onBack={() => setSelectedRepository(null)}
-            />
-        );
+
+    if (isLoading) {
+        return <LoadingSpinner message="저장소 목록을 불러오는 중..." />;
     }
-    
-    const renderContent = () => {
-        if (isLoading) {
-            return (
-                <>
-                    <div className="mb-8">
-                        <h2 className="text-3xl font-bold text-white-800 mb-2">저장소를 불러오는 중 입니다</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <RepositoryCard isSkeleton={true} />
-                        <RepositoryCard isSkeleton={true} />
-                        <RepositoryCard isSkeleton={true} />
-                    </div>
-                </>
-            );
-        }
-        
-        return (
-            <>
+
+    return (
+        <div className="max-w-6xl mx-auto px-4 py-8">
+            <Header isLogin={isLogin} username={username} />
+            
+            {repositories.length !== 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {repositories.map((repo) => (
                         <RepositoryCard key={repo.repository.id} repo={repo} />
                     ))}
                 </div>
-            </>
-        );
-    };
-    
-    return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
-            {renderContent()}
+            )}
         </div>
     );
 };
