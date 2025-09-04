@@ -94,7 +94,7 @@ const PullRequestList: React.FC = () => {
             {/* PR 목록 */}
             {pullRequests.length === 0 ? (
                 <div className="text-center py-12">
-                    <h3 className="text-lg font-medium text-white mb-2">PR 목록이 없거나 Webhook이 연결되지 않았습니다</h3>
+                    <h3 className="text-base font-medium text-white mb-2">PR 목록이 없거나 Webhook이 연결되지 않았습니다</h3>
                 </div>
             ) : (
                 <div className="space-y-4">
