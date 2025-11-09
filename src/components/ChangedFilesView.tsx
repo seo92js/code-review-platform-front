@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getPullRequestWithChanges } from '../api/pull-request';
 import LoadingSpinner from './LoadingSpinner';
 import type { ChangedFile } from '../types/pullRequest';
 import { requestReview } from '../api/github';
+import { toast } from 'react-toastify';
 
 const ChangedFilesView: React.FC = () => {
     const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
     const navigate = useNavigate();
-    const location = useLocation();
     const [changedFiles, setChangedFiles] = useState<ChangedFile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
-    // PR 상태 정보 가져오기
-    const prStatus = location.state?.status || 'PENDING';
-
     useEffect(() => {
         const fetchChangedFiles = async () => {
             if (!owner || !repo || !prNumber) return;
@@ -87,11 +84,16 @@ const ChangedFilesView: React.FC = () => {
                         </button>
                         <h1 className="text-xl font-bold text-white leading-none">PR #{prNumber} - 변경사항</h1>
                     </div>
-                    {prStatus === 'PENDING' && (
                         <button
-                            onClick={() => {
+                            onClick={async () => {
                                 if (!repo || !prNumber) return;
-                                requestReview(repo, parseInt(prNumber));
+                                try {
+                                    await requestReview(repo, parseInt(prNumber));
+                                    toast.success('리뷰 요청이 완료되었습니다. 잠시 후 리뷰를 확인해주세요.');
+                                    navigate(`/repos/${owner}/${repo}`);
+                                } catch (error) {
+                                    toast.error('리뷰 요청에 실패했습니다. 다시 시도해주세요.');
+                                }
                             }}
                             className="flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-blue-400 bg-blue-500/20 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 hover:border-blue-400 hover:text-blue-300 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25"
                         >
@@ -100,7 +102,6 @@ const ChangedFilesView: React.FC = () => {
                             </svg>
                             <span>리뷰 요청</span>
                         </button>
-                    )}
                 </div>
             </div>
 
