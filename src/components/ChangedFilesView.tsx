@@ -87,13 +87,9 @@ const ChangedFilesView: React.FC = () => {
                         <button
                             onClick={async () => {
                                 if (!repo || !prNumber) return;
-                                try {
-                                    await requestReview(repo, parseInt(prNumber));
-                                    toast.success('리뷰 요청이 완료되었습니다. 잠시 후 리뷰를 확인해주세요.');
-                                    navigate(`/repos/${owner}/${repo}`);
-                                } catch (error) {
-                                    toast.error('리뷰 요청에 실패했습니다. 다시 시도해주세요.');
-                                }
+                                await requestReview(repo, parseInt(prNumber));
+                                toast.success('리뷰 요청이 완료되었습니다. 잠시 후 리뷰를 확인해주세요.');
+                                navigate(`/repos/${owner}/${repo}`);
                             }}
                             className="flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-blue-400 bg-blue-500/20 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 hover:border-blue-400 hover:text-blue-300 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25"
                         >
