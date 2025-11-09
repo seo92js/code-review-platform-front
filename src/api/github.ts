@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+/**
+ * 로그인 상태 조회 API
+ */
 export const checkLogin = async () => {
     try {
         const response = await axios.get('/api/github/status', {
@@ -13,6 +16,9 @@ export const checkLogin = async () => {
     }
 }
 
+/**
+ * Github 저장소 조회 API
+ */
 export const getRepositories = async () => {
     try {
         const response = await axios.get('/api/github/repositories', {
@@ -25,6 +31,9 @@ export const getRepositories = async () => {
     }
 }
 
+/**
+ * 사용자 이름 조회 API
+ */
 export const getUsername = async () => {
     try {
         const response = await axios.get('/api/github/username', {
@@ -38,6 +47,9 @@ export const getUsername = async () => {
     }
 }
 
+/**
+ * 웹훅 연결 API
+ */
 export const registerWebhook = async (repository: string) => {
     try {
         const response = await axios.post('/api/github/register', null, {
@@ -46,6 +58,21 @@ export const registerWebhook = async (repository: string) => {
         });
         
         return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+/**
+ * 리뷰 요청 API
+ */
+export const requestReview = async (repository: string, prNumber: number) => {
+    try {
+        await axios.post('/api/pull-request/review', null, {
+            params: { repository, prNumber },
+            withCredentials: true
+        })
     } catch (error) {
         console.error(error);
         throw error;
