@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getPullRequestWithChanges } from '../api/pull-request';
 import LoadingSpinner from './LoadingSpinner';
 import type { ChangedFile } from '../types/pullRequest';
+import { requestReview } from '../api/github';
 
 const ChangedFilesView: React.FC = () => {
     const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
@@ -89,8 +90,8 @@ const ChangedFilesView: React.FC = () => {
                     {prStatus === 'PENDING' && (
                         <button
                             onClick={() => {
-                                // TODO: 리뷰 요청 API 호출
-                                alert('리뷰 요청이 전송되었습니다!');
+                                if (!repo || !prNumber) return;
+                                requestReview(repo, parseInt(prNumber));
                             }}
                             className="flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-blue-400 bg-blue-500/20 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 hover:border-blue-400 hover:text-blue-300 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25"
                         >
