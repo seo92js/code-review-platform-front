@@ -78,3 +78,20 @@ export const requestReview = async (repository: string, prNumber: number) => {
         throw error;
     }
 }
+
+/**
+ * 리뷰 결과 조회 API
+ */
+export const getReview = async (repository: string, prNumber: number) => {
+    try {
+        const response = await axios.get('/api/pull-request/review', {
+            params: { repository, prNumber },
+            withCredentials: true
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}

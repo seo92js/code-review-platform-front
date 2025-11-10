@@ -82,3 +82,25 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.markdown-body h3 {
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-body li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-body p {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
