@@ -10,4 +10,5 @@ export interface Repository {
 export interface RepositoryResponse {
     repository: Repository;
     hasWebhook: boolean;
+    existsOpenPullRequest: boolean;
 }

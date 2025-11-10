@@ -54,8 +54,14 @@ const RepositoryList: React.FC = () => {
     const RepositoryCard = ({ repo, isSkeleton = false }: { repo?: RepositoryResponse; isSkeleton?: boolean }) => {
     return (
             <div 
-                className={`bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border border-slate-700/50 overflow-hidden flex flex-col ${
-                    !isSkeleton ? 'group hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500/30' : 'animate-pulse'
+                className={`bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border overflow-hidden flex flex-col ${
+                    isSkeleton 
+                        ? 'border-slate-700/50 animate-pulse' 
+                        : `group hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500/30 ${
+                            repo!.existsOpenPullRequest 
+                                ? 'border-1 animate-border-pulse' 
+                                : 'border-slate-700/50'
+                        }`
                 }`}
                 onClick={() => !isSkeleton && handleCardClick(repo!.repository.owner, repo!.repository.name)}
             >
@@ -71,7 +77,7 @@ const RepositoryList: React.FC = () => {
                                 </h3>
                             )}
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 flex-wrap gap-2">
                             {isSkeleton ? (
                                 <>
                                     <div className="h-6 bg-slate-700 rounded-full w-16"></div>

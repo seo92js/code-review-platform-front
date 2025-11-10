@@ -3,14 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getPullRequestWithChanges } from '../api/pull-request';
 import LoadingSpinner from './LoadingSpinner';
 import type { ChangedFile } from '../types/pullRequest';
-import { requestReview } from '../api/github';
+import { requestReview, getReview } from '../api/github';
 import { toast } from 'react-toastify';
+import ReactMarkdown from 'react-markdown'
+import rehypeHighlight from 'rehype-highlight'
+import 'highlight.js/styles/github-dark.css' 
 
 const ChangedFilesView: React.FC = () => {
     const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
     const navigate = useNavigate();
     const [changedFiles, setChangedFiles] = useState<ChangedFile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [expandedFiles, setExpandedFiles] = useState<Set<number>>(new Set());
+    const [reviewResult, setReviewResult] = useState<any>(null);
     
     useEffect(() => {
         const fetchChangedFiles = async () => {
@@ -29,6 +34,22 @@ const ChangedFilesView: React.FC = () => {
 
         fetchChangedFiles();
     }, [owner, repo, prNumber]);
+
+    useEffect(() => {
+        const fetchReview = async () => {
+            if (!repo || !prNumber) return;
+            
+            try {
+                const review = await getReview(repo, parseInt(prNumber));
+                setReviewResult(review);
+            } catch (error) {
+                console.error('리뷰 결과 조회 실패:', error);
+                setReviewResult(null);
+            }
+        };
+
+        fetchReview();
+    }, [repo, prNumber]);
 
     const getFileStatusColor = (status: string) => {
         switch (status) {
@@ -62,6 +83,18 @@ const ChangedFilesView: React.FC = () => {
 
     const handleBackToPRList = () => {
         navigate(`/repos/${owner}/${repo}`);
+    };
+
+    const toggleFileExpanded = (index: number) => {
+        setExpandedFiles(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(index)) {
+                newSet.delete(index);
+            } else {
+                newSet.add(index);
+            }
+            return newSet;
+        });
     };
 
     if (isLoading) {
@@ -107,99 +140,131 @@ const ChangedFilesView: React.FC = () => {
                     <h3 className="text-lg font-medium text-white mb-2">변경된 파일이 없습니다</h3>
                 </div>
             ) : (
-                <div className="space-y-4">
-                    {changedFiles.map((file, index) => (
-                        <div key={index} className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border border-slate-700/50 p-6 hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:border-blue-500/30">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="text-sm font-semibold text-white mb-2">{file.filename}</h3>
-                                    <div className="flex items-center space-x-3">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getFileStatusColor(file.status)}`}>
-                                            {getFileStatusText(file.status)}
-                                        </span>
-                                        <span className="text-xs text-gray-400">
-                                            +{file.additions} -{file.deletions} ({file.changes} 변경)
-                                        </span>
-                                        <span className="text-xs text-gray-400">
-                                            {file.lines} 라인
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {/* Patch 내용 */}
-                            {file.patch && (
-                                <div className="mt-4">
-                                    <h4 className="text-xs font-medium text-gray-300 mb-3">변경 내용:</h4>
-                                    <div className="bg-slate-900/50 rounded-lg border border-slate-700/50 overflow-hidden">
-                                        <div className="p-0">
-                                            {file.patch.split('\n').map((line, lineIndex) => {
-                                                const isAdded = line.startsWith('+');
-                                                const isDeleted = line.startsWith('-');
-                                                const isContext = line.startsWith(' ');
-                                                const isHeader = line.startsWith('@@');
-                                                
-                                                let bgColor = 'bg-white';
-                                                let textColor = 'text-gray-800';
-                                                let borderColor = '';
-                                                
-                                                if (isAdded) {
-                                                    bgColor = 'bg-green-50';
-                                                    textColor = 'text-green-800';
-                                                    borderColor = 'border-l-4 border-green-400';
-                                                } else if (isDeleted) {
-                                                    bgColor = 'bg-red-50';
-                                                    textColor = 'text-red-800';
-                                                    borderColor = 'border-l-4 border-red-400';
-                                                } else if (isHeader) {
-                                                    bgColor = 'bg-blue-50';
-                                                    textColor = 'text-blue-800';
-                                                    borderColor = 'border-l-4 border-blue-400';
-                                                } else if (isContext) {
-                                                    bgColor = 'bg-gray-50';
-                                                    textColor = 'text-gray-600';
-                                                }
-                                                
-                                                return (
-                                                    <div key={lineIndex} className={`${bgColor} ${borderColor} px-4 py-1 text-xs font-mono text-left`}>
-                                                        <span className={`${textColor} whitespace-pre`}>
-                                                            {line}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
+                <div className="mb-8 space-y-4">
+                    {changedFiles.map((file, index) => {
+                        const isExpanded = expandedFiles.has(index);
+                        return (
+                            <div key={index} className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border border-slate-700/50 overflow-hidden hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:border-blue-500/30">
+                                <button
+                                    onClick={() => toggleFileExpanded(index)}
+                                    className={`w-full flex items-center justify-between px-6 text-left ${isExpanded ? 'pt-6 pb-6' : 'py-6'}`}
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-sm font-semibold text-white mb-2">{file.filename}</h3>
+                                        <div className="flex items-center space-x-3">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getFileStatusColor(file.status)}`}>
+                                                {getFileStatusText(file.status)}
+                                            </span>
+                                            <span className="text-xs text-gray-400">
+                                                +{file.additions} -{file.deletions} ({file.changes} 변경)
+                                            </span>
+                                            <span className="text-xs text-gray-400">
+                                                {file.lines} 라인
+                                            </span>
                                         </div>
                                     </div>
+                                    <svg
+                                        className={`w-5 h-5 text-gray-400 flex-shrink-0 ml-4 ${isExpanded ? 'transform rotate-180' : ''}`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                
+                                <div className={`px-6 overflow-hidden ${isExpanded ? 'max-h-[10000px]' : 'max-h-0 pb-0'}`}>
+                                    {/* Patch 내용 */}
+                                    {file.patch && (
+                                        <div className={`mt-4 ${isExpanded ? '' : 'opacity-0 pointer-events-none'}`}>
+                                            <h4 className="text-xs font-medium text-gray-300 mb-3">변경 내용:</h4>
+                                            <div className="bg-slate-900/50 rounded-lg border border-slate-700/50 overflow-x-auto">
+                                                <div className="p-0 min-w-max">
+                                                    {file.patch.split('\n').map((line, lineIndex) => {
+                                                        const isAdded = line.startsWith('+');
+                                                        const isDeleted = line.startsWith('-');
+                                                        const isContext = line.startsWith(' ');
+                                                        const isHeader = line.startsWith('@@');
+                                                        
+                                                        let bgColor = 'bg-white';
+                                                        let textColor = 'text-gray-800';
+                                                        let borderColor = '';
+                                                        
+                                                        if (isAdded) {
+                                                            bgColor = 'bg-green-50';
+                                                            textColor = 'text-green-800';
+                                                            borderColor = 'border-l-4 border-green-400';
+                                                        } else if (isDeleted) {
+                                                            bgColor = 'bg-red-50';
+                                                            textColor = 'text-red-800';
+                                                            borderColor = 'border-l-4 border-red-400';
+                                                        } else if (isHeader) {
+                                                            bgColor = 'bg-blue-50';
+                                                            textColor = 'text-blue-800';
+                                                            borderColor = 'border-l-4 border-blue-400';
+                                                        } else if (isContext) {
+                                                            bgColor = 'bg-gray-50';
+                                                            textColor = 'text-gray-600';
+                                                        }
+                                                        
+                                                        return (
+                                                            <div key={lineIndex} className={`${bgColor} ${borderColor} px-4 py-1 text-xs font-mono text-left whitespace-nowrap`}>
+                                                                <span className={`${textColor}`}>
+                                                                    {line}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* 파일 링크 */}
+                                    <div className={`mt-4 flex space-x-2 ${isExpanded ? '' : 'opacity-0 pointer-events-none'}`}>
+                                        {file.blobUrl && (
+                                            <a
+                                                href={file.blobUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                파일 보기
+                                            </a>
+                                        )}
+                                        {file.rawUrl && (
+                                            <a
+                                                href={file.rawUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                Raw 보기
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
-                            )}
-                            
-                            {/* 파일 링크 */}
-                            <div className="mt-4 flex space-x-2">
-                                {file.blobUrl && (
-                                    <a
-                                        href={file.blobUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
-                                    >
-                                        파일 보기
-                                    </a>
-                                )}
-                                {file.rawUrl && (
-                                    <a
-                                        href={file.rawUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200"
-                                    >
-                                        Raw 보기
-                                    </a>
-                                )}
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
+
+            {/* 리뷰 결과 */}
+            <div className="mt-8">
+                <h2 className="text-xl font-bold text-white mb-4">AI 리뷰 결과</h2>
+                {reviewResult ? (
+                    <div className="markdown-body text-left text-sm bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border border-slate-700/50 p-6 whitespace-pre-wrap">
+                        <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{reviewResult}</ReactMarkdown>
+                    </div>
+                ) : (
+                    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border border-slate-700/50 p-6 text-center">
+                        <p className="text-gray-400">리뷰 결과가 없습니다.</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
