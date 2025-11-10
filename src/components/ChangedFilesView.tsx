@@ -173,10 +173,10 @@ const ChangedFilesView: React.FC = () => {
                                     </svg>
                                 </button>
                                 
-                                <div className={`px-6 pb-6 overflow-hidden ${isExpanded ? 'max-h-[10000px]' : 'max-h-0 pb-0 hidden'}`}>
+                                <div className={`px-6 overflow-hidden ${isExpanded ? 'max-h-[10000px]' : 'max-h-0 pb-0'}`}>
                                     {/* Patch 내용 */}
                                     {file.patch && (
-                                        <div className="mt-4">
+                                        <div className={`mt-4 ${isExpanded ? '' : 'opacity-0 pointer-events-none'}`}>
                                             <h4 className="text-xs font-medium text-gray-300 mb-3">변경 내용:</h4>
                                             <div className="bg-slate-900/50 rounded-lg border border-slate-700/50 overflow-x-auto">
                                                 <div className="p-0 min-w-max">
@@ -221,7 +221,7 @@ const ChangedFilesView: React.FC = () => {
                                     )}
                                     
                                     {/* 파일 링크 */}
-                                    <div className="mt-4 flex space-x-2">
+                                    <div className={`mt-4 flex space-x-2 ${isExpanded ? '' : 'opacity-0 pointer-events-none'}`}>
                                         {file.blobUrl && (
                                             <a
                                                 href={file.blobUrl}

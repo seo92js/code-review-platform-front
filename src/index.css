@@ -58,13 +58,6 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
 
 .animate-border-pulse {
   animation: border-pulse 1.5s ease-in-out infinite;
@@ -83,9 +76,16 @@ button:focus-visible {
   }
 }
 
-.markdown-body h3 {
-  font-size: 1.25rem; /* text-xl */
+.markdown-body h2 {
+  font-size: 1.5rem;
   font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
