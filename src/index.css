@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes border-pulse {
+  0%, 100% {
+    border-color: rgb(34 197 94 / 0.5);
+  }
+  50% {
+    border-color: rgb(34 197 94 / 1);
+  }
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -55,6 +64,10 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+.animate-border-pulse {
+  animation: border-pulse 1.5s ease-in-out infinite;
 }
 
 @media (prefers-color-scheme: light) {
