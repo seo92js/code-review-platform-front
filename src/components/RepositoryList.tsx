@@ -59,7 +59,7 @@ const RepositoryList: React.FC = () => {
                         ? 'border-slate-700/50 animate-pulse' 
                         : `group hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500/30 ${
                             repo!.existsOpenPullRequest 
-                                ? 'border-2 border-green-500/50 animate-border-pulse' 
+                                ? 'border-1 animate-border-pulse' 
                                 : 'border-slate-700/50'
                         }`
                 }`}
