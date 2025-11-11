@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getPullRequestWithChanges } from '../api/pull-request';
 import LoadingSpinner from './LoadingSpinner';
 import type { ChangedFile } from '../types/pullRequest';
-import { requestReview, getReview } from '../api/github';
+import { requestReview, getReview } from '../api/pull-request';
 import { toast } from 'react-toastify';
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'

@@ -116,7 +116,7 @@ export const getSystemPrompt = async () => {
  */
 export const updateSystemPrompt = async (prompt: string) => {
     try {
-        const response = await axios.patch('/api/github/prompt', { 
+        const response = await axios.patch('/api/github/prompt', null, {
             params: { prompt },
             withCredentials: true
         });
