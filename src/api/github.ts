@@ -95,3 +95,34 @@ export const getReview = async (repository: string, prNumber: number) => {
         throw error;
     }
 }
+
+/**
+ * 시스템 프롬프트 조회
+ */
+export const getSystemPrompt = async () => {
+    try {
+        const response = await axios.get('/api/github/prompt', {
+            withCredentials: true
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+/**
+ * 시스템 프롬프트 업데이트
+ */
+export const updateSystemPrompt = async (prompt: string) => {
+    try {
+        const response = await axios.patch('/api/github/prompt', null, {
+            params: { prompt },
+            withCredentials: true
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
