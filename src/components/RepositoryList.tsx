@@ -4,6 +4,7 @@ import { checkLogin, getRepositories, getUsername, registerWebhook } from '../ap
 import Header from './Header';
 import LoadingSpinner from './LoadingSpinner';
 import SystemPromptModal from './SystemPromptModal';
+import IgnorePatternsModal from './IgnorePatternsModal';
 import type { RepositoryResponse } from '../types/repository';
 
 const RepositoryList: React.FC = () => {
@@ -13,6 +14,7 @@ const RepositoryList: React.FC = () => {
     const [username, setUsername] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+    const [isIgnoreModalOpen, setIsIgnoreModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchLoginStatus = async () => {
@@ -54,17 +56,15 @@ const RepositoryList: React.FC = () => {
     };
 
     const RepositoryCard = ({ repo, isSkeleton = false }: { repo?: RepositoryResponse; isSkeleton?: boolean }) => {
-    return (
-            <div 
-                className={`bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border overflow-hidden flex flex-col ${
-                    isSkeleton 
-                        ? 'border-slate-700/50 animate-pulse' 
-                        : `group hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500/30 ${
-                            repo!.existsOpenPullRequest 
-                                ? 'border-1 animate-border-pulse' 
-                                : 'border-slate-700/50'
+        return (
+            <div
+                className={`bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border overflow-hidden flex flex-col ${isSkeleton
+                        ? 'border-slate-700/50 animate-pulse'
+                        : `group hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500/30 ${repo!.existsOpenPullRequest
+                            ? 'border-1 animate-border-pulse'
+                            : 'border-slate-700/50'
                         }`
-                }`}
+                    }`}
                 onClick={() => !isSkeleton && handleCardClick(repo!.repository.owner, repo!.repository.name)}
             >
                 {/* Header section */}
@@ -87,11 +87,10 @@ const RepositoryList: React.FC = () => {
                                 </>
                             ) : (
                                 <>
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                        repo!.repository.private
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${repo!.repository.private
                                             ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                                             : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                    }`}>
+                                        }`}>
                                         {repo!.repository.private ? '🔒 Private' : '🌍 Public'}
                                     </span>
                                     {repo!.hasWebhook ? (
@@ -168,9 +167,18 @@ const RepositoryList: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
             <Header isLogin={isLogin} username={username} />
-            
+
             {isLogin && (
-                <div className="mb-6 flex justify-end">
+                <div className="mb-6 flex justify-end space-x-3">
+                    <button
+                        onClick={() => setIsIgnoreModalOpen(true)}
+                        className="inline-flex items-center bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 border border-slate-600/50 hover:border-slate-500 font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg"
+                    >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                        Ignore 설정
+                    </button>
                     <button
                         onClick={() => setIsPromptModalOpen(true)}
                         className="inline-flex items-center bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30 hover:border-purple-400 font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/25"
@@ -182,7 +190,7 @@ const RepositoryList: React.FC = () => {
                     </button>
                 </div>
             )}
-            
+
             {repositories.length !== 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {repositories.map((repo) => (
@@ -190,10 +198,14 @@ const RepositoryList: React.FC = () => {
                     ))}
                 </div>
             )}
-            
-            <SystemPromptModal 
-                isOpen={isPromptModalOpen} 
-                onClose={() => setIsPromptModalOpen(false)} 
+
+            <SystemPromptModal
+                isOpen={isPromptModalOpen}
+                onClose={() => setIsPromptModalOpen(false)}
+            />
+            <IgnorePatternsModal
+                isOpen={isIgnoreModalOpen}
+                onClose={() => setIsIgnoreModalOpen(false)}
             />
         </div>
     );

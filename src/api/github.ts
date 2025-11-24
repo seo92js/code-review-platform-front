@@ -126,3 +126,33 @@ export const updateSystemPrompt = async (prompt: string) => {
         throw error;
     }
 }
+
+/**
+ * Ignore 패턴 조회
+ */
+export const getIgnorePatterns = async () => {
+    try {
+        const response = await axios.get('/api/github/ignore', {
+            withCredentials: true
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+/**
+ * Ignore 패턴 업데이트
+ */
+export const updateIgnorePatterns = async (patterns: string[]) => {
+    try {
+        const response = await axios.patch('/api/github/ignore', patterns, {
+            withCredentials: true
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
