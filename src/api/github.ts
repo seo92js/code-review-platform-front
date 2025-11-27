@@ -56,7 +56,7 @@ export const registerWebhook = async (repository: string) => {
             params: { repository },
             withCredentials: true
         });
-        
+
         return response.data;
     } catch (error) {
         console.error(error);
@@ -148,6 +148,36 @@ export const getIgnorePatterns = async () => {
 export const updateIgnorePatterns = async (patterns: string[]) => {
     try {
         const response = await axios.patch('/api/github/ignore', patterns, {
+            withCredentials: true
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+/**
+ * OpenAI 키 조회
+ */
+export const getOpenAiKey = async () => {
+    try {
+        const response = await axios.get('/api/github/openai', {
+            withCredentials: true
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+/**
+ * OpenAI 키 업데이트
+ */
+export const updateOpenAiKey = async (key: string) => {
+    try {
+        const response = await axios.patch('/api/github/openai', { key }, {
             withCredentials: true
         });
         return response.data;
