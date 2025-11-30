@@ -5,6 +5,7 @@ import Header from './Header';
 import LoadingSpinner from './LoadingSpinner';
 import SystemPromptModal from './SystemPromptModal';
 import IgnorePatternsModal from './IgnorePatternsModal';
+import OpenAiKeyModal from './OpenAiKeyModal';
 import type { RepositoryResponse } from '../types/repository';
 
 const RepositoryList: React.FC = () => {
@@ -15,6 +16,7 @@ const RepositoryList: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
     const [isIgnoreModalOpen, setIsIgnoreModalOpen] = useState(false);
+    const [isOpenAiKeyModalOpen, setIsOpenAiKeyModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchLoginStatus = async () => {
@@ -59,11 +61,11 @@ const RepositoryList: React.FC = () => {
         return (
             <div
                 className={`bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border overflow-hidden flex flex-col ${isSkeleton
-                        ? 'border-slate-700/50 animate-pulse'
-                        : `group hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500/30 ${repo!.existsOpenPullRequest
-                            ? 'border-1 animate-border-pulse'
-                            : 'border-slate-700/50'
-                        }`
+                    ? 'border-slate-700/50 animate-pulse'
+                    : `group hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500/30 ${repo!.existsOpenPullRequest
+                        ? 'border-1 animate-border-pulse'
+                        : 'border-slate-700/50'
+                    }`
                     }`}
                 onClick={() => !isSkeleton && handleCardClick(repo!.repository.owner, repo!.repository.name)}
             >
@@ -88,8 +90,8 @@ const RepositoryList: React.FC = () => {
                             ) : (
                                 <>
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${repo!.repository.private
-                                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                        : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                                         }`}>
                                         {repo!.repository.private ? '🔒 Private' : '🌍 Public'}
                                     </span>
@@ -180,6 +182,15 @@ const RepositoryList: React.FC = () => {
                         Ignore 설정
                     </button>
                     <button
+                        onClick={() => setIsOpenAiKeyModalOpen(true)}
+                        className="inline-flex items-center bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/25"
+                    >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        OpenAI 키 설정
+                    </button>
+                    <button
                         onClick={() => setIsPromptModalOpen(true)}
                         className="inline-flex items-center bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30 hover:border-purple-400 font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/25"
                     >
@@ -206,6 +217,10 @@ const RepositoryList: React.FC = () => {
             <IgnorePatternsModal
                 isOpen={isIgnoreModalOpen}
                 onClose={() => setIsIgnoreModalOpen(false)}
+            />
+            <OpenAiKeyModal
+                isOpen={isOpenAiKeyModalOpen}
+                onClose={() => setIsOpenAiKeyModalOpen(false)}
             />
         </div>
     );
