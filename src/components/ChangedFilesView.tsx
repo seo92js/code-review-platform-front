@@ -7,7 +7,7 @@ import { requestReview, getReview } from '../api/pull-request';
 import { toast } from 'react-toastify';
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
-import 'highlight.js/styles/github-dark.css' 
+import 'highlight.js/styles/github-dark.css'
 
 const ChangedFilesView: React.FC = () => {
     const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
@@ -16,11 +16,12 @@ const ChangedFilesView: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [expandedFiles, setExpandedFiles] = useState<Set<number>>(new Set());
     const [reviewResult, setReviewResult] = useState<any>(null);
-    
+    const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
+
     useEffect(() => {
         const fetchChangedFiles = async () => {
             if (!owner || !repo || !prNumber) return;
-            
+
             try {
                 setIsLoading(true);
                 const changes = await getPullRequestWithChanges(repo, parseInt(prNumber));
@@ -38,7 +39,7 @@ const ChangedFilesView: React.FC = () => {
     useEffect(() => {
         const fetchReview = async () => {
             if (!repo || !prNumber) return;
-            
+
             try {
                 const review = await getReview(repo, parseInt(prNumber));
                 setReviewResult(review);
@@ -120,10 +121,17 @@ const ChangedFilesView: React.FC = () => {
                             <span>변경사항</span>
                         </h1>
                     </div>
+                    <select
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                        className="px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 md:py-2 text-[10px] sm:text-[11px] md:text-xs lg:text-sm font-medium text-gray-300 bg-slate-700/50 border border-slate-600/50 rounded sm:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    >
+                        <option value="gpt-4o-mini">gpt-4o-mini</option>
+                    </select>
                     <button
                         onClick={async () => {
                             if (!repo || !prNumber) return;
-                            await requestReview(repo, parseInt(prNumber));
+                            await requestReview(repo, parseInt(prNumber), selectedModel);
                             toast.success('리뷰 요청이 완료되었습니다. 잠시 후 리뷰를 확인해주세요.');
                             navigate(`/repos/${owner}/${repo}`);
                         }}
@@ -178,7 +186,7 @@ const ChangedFilesView: React.FC = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
-                                
+
                                 <div className={`px-1.5 sm:px-2 md:px-3 lg:px-4 xl:px-6 overflow-hidden ${isExpanded ? 'max-h-[10000px]' : 'max-h-0 pb-0'}`}>
                                     {/* Patch 내용 */}
                                     {file.patch && (
@@ -191,11 +199,11 @@ const ChangedFilesView: React.FC = () => {
                                                         const isDeleted = line.startsWith('-');
                                                         const isContext = line.startsWith(' ');
                                                         const isHeader = line.startsWith('@@');
-                                                        
+
                                                         let bgColor = 'bg-white';
                                                         let textColor = 'text-gray-800';
                                                         let borderColor = '';
-                                                        
+
                                                         if (isAdded) {
                                                             bgColor = 'bg-green-50';
                                                             textColor = 'text-green-800';
@@ -212,7 +220,7 @@ const ChangedFilesView: React.FC = () => {
                                                             bgColor = 'bg-gray-50';
                                                             textColor = 'text-gray-600';
                                                         }
-                                                        
+
                                                         return (
                                                             <div key={lineIndex} className={`${bgColor} ${borderColor} px-0.5 sm:px-1 md:px-1.5 lg:px-2 xl:px-4 py-0.5 text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs font-mono text-left break-all overflow-wrap-anywhere`}>
                                                                 <span className={`${textColor} break-all`}>
@@ -225,7 +233,7 @@ const ChangedFilesView: React.FC = () => {
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     {/* 파일 링크 */}
                                     <div className={`mt-1.5 sm:mt-2 md:mt-3 lg:mt-4 flex flex-col sm:flex-row gap-1 sm:gap-1.5 md:gap-2 ${isExpanded ? '' : 'opacity-0 pointer-events-none'}`}>
                                         {file.blobUrl && (
