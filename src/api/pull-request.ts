@@ -37,10 +37,10 @@ export const getPullRequestWithChanges = async (repository: string, prNumber: nu
 /**
  * 리뷰 요청 API
  */
-export const requestReview = async (repository: string, prNumber: number) => {
+export const requestReview = async (repository: string, prNumber: number, model?: string) => {
     try {
         await axios.post('/api/pull-request/review', null, {
-            params: { repository, prNumber },
+            params: { repository, prNumber, model },
             withCredentials: true
         })
     } catch (error) {

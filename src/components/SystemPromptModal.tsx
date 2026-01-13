@@ -12,11 +12,6 @@ const SystemPromptModal: React.FC<SystemPromptModalProps> = ({ isOpen, onClose }
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     
-    // UTF-8 바이트 길이 계산 (varchar와 정확히 일치)
-    const getByteLength = (str: string): number => {
-        return new Blob([str]).size;
-    };
-
     useEffect(() => {
         if (isOpen) {
             loadPrompt();
