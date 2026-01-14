@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { checkLogin, getRepositories, getUsername, registerWebhook } from '../api/github';
 import Header from './Header';
@@ -46,10 +47,10 @@ const RepositoryList: React.FC = () => {
         e.stopPropagation();
         try {
             await registerWebhook(repositoryName);
-            alert('웹훅이 성공적으로 연결되었습니다!');
-            window.location.reload();
+            toast.success('웹훅이 성공적으로 연결되었습니다!');
+            setTimeout(() => window.location.reload(), 1000);
         } catch (error) {
-            alert('웹훅 연결에 실패했습니다.');
+            toast.error('웹훅 연결에 실패했습니다.');
             console.error('웹훅 연결 오류:', error);
         }
     };
