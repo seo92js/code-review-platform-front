@@ -17,6 +17,7 @@ const RepositoryList: React.FC = () => {
     const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
     const [isIgnoreModalOpen, setIsIgnoreModalOpen] = useState(false);
     const [isOpenAiKeyModalOpen, setIsOpenAiKeyModalOpen] = useState(false);
+    const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
     useEffect(() => {
         const fetchLoginStatus = async () => {
@@ -60,103 +61,71 @@ const RepositoryList: React.FC = () => {
     const RepositoryCard = ({ repo, isSkeleton = false }: { repo?: RepositoryResponse; isSkeleton?: boolean }) => {
         return (
             <div
-                className={`bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border overflow-hidden flex flex-col ${isSkeleton
-                    ? 'border-slate-700/50 animate-pulse'
-                    : `group hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:border-blue-500/30 ${repo!.existsOpenPullRequest
-                        ? 'border-1 animate-border-pulse'
-                        : 'border-slate-700/50'
+                className={`group relative rounded-xl overflow-hidden transition-all duration-300 border h-[160px] flex flex-col ${isSkeleton
+                    ? 'bg-white/[0.02] border-white/5 animate-pulse'
+                    : `bg-white/[0.02] border-white/5 cursor-pointer hover:bg-white/[0.04] hover:border-white/10 ${repo!.existsOpenPullRequest
+                        ? 'border-emerald-500/30'
+                        : ''
                     }`
                     }`}
                 onClick={() => !isSkeleton && handleCardClick(repo!.repository.owner, repo!.repository.name)}
             >
-                {/* Header section */}
-                <div className="p-6 border-b border-slate-700/50">
-                    <div className="flex flex-col items-center space-y-3 mb-3">
+                {/* Content */}
+                <div className="p-4 flex flex-col h-full">
+                    {/* Top row: name + visibility */}
+                    <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                             {isSkeleton ? (
-                                <div className="h-6 bg-slate-700 rounded w-3/4"></div>
+                                <div className="h-5 bg-white/10 rounded w-3/4"></div>
                             ) : (
-                                <h3 className="text-white font-bold truncate">
+                                <h3 className="text-[14px] font-semibold text-white truncate group-hover:text-blue-400 transition-colors">
                                     {repo!.repository.name}
                                 </h3>
                             )}
                         </div>
-                        <div className="flex items-center space-x-2 flex-wrap gap-2">
-                            {isSkeleton ? (
-                                <>
-                                    <div className="h-6 bg-slate-700 rounded-full w-16"></div>
-                                    <div className="h-6 bg-slate-700 rounded-full w-20"></div>
-                                </>
-                            ) : (
-                                <>
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${repo!.repository.private
-                                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                                        : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                        }`}>
-                                        {repo!.repository.private ? '🔒 Private' : '🌍 Public'}
-                                    </span>
-                                    {repo!.hasWebhook ? (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                            🔗 Webhook 연결됨
-                                        </span>
-                                    ) : (
-                                        <button
-                                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 hover:border-orange-400 hover:text-orange-300 transition-all duration-200"
-                                            onClick={(e) => handleWebhookConnect(repo!.repository.name, e)}
-                                        >
-                                            🔗 Webhook 연결하기
-                                        </button>
-                                    )}
-                                </>
-                            )}
-                        </div>
+                        {!isSkeleton && (
+                            <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded border text-slate-500 border-slate-600/50`}>
+                                {repo!.repository.private ? 'Private' : 'Public'}
+                            </span>
+                        )}
                     </div>
-                </div>
 
-                {/* Description section */}
-                <div className="p-6 flex-1">
-                    {isSkeleton ? (
-                        <div className="space-y-2">
-                            <div className="h-4 bg-slate-700 rounded w-full"></div>
-                            <div className="h-4 bg-slate-700 rounded w-5/6"></div>
-                            <div className="h-4 bg-slate-700 rounded w-4/6"></div>
-                        </div>
-                    ) : (
-                        <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">
-                            {repo!.repository.description || '저장소에 대한 설명이 없습니다.'}
-                        </p>
-                    )}
-                </div>
-
-                {/* Footer section */}
-                <div className="px-6 py-4 bg-slate-800/50 border-t border-slate-700/50 mt-auto">
-                    {isSkeleton ? (
-                        <div className="flex items-center justify-between">
-                            <div className="h-4 bg-slate-700 rounded w-20"></div>
-                            <div className="h-8 bg-slate-700 rounded-lg w-24"></div>
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2 text-sm text-gray-400">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                </svg>
-                                <span>{repo!.repository.owner}</span>
+                    {/* Description */}
+                    <div className="mt-3">
+                        {isSkeleton ? (
+                            <div className="space-y-2">
+                                <div className="h-3 bg-white/5 rounded w-full"></div>
+                                <div className="h-3 bg-white/5 rounded w-4/5"></div>
                             </div>
-                            <a
-                                href={repo!.repository.html_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-400 bg-blue-500/20 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 hover:border-blue-400 hover:text-blue-300 transition-all duration-200"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                GitHub
-                                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                            </a>
-                        </div>
-                    )}
+                        ) : (
+                            <p className="text-[12px] text-slate-500 leading-relaxed line-clamp-2 text-left">
+                                {repo!.repository.description || '설명 없음'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Bottom row: webhook status */}
+                    <div className="flex items-center pt-3 mt-auto border-t border-white/5">
+                        {isSkeleton ? (
+                            <div className="h-5 bg-white/5 rounded w-24"></div>
+                        ) : (
+                            <>
+                                {repo!.hasWebhook ? (
+                                    <span className="text-[10px] font-medium px-2 py-1 text-emerald-400 flex items-center">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                                        Webhook Connected
+                                    </span>
+                                ) : (
+                                    <button
+                                        onClick={(e) => handleWebhookConnect(repo!.repository.name, e)}
+                                        className="text-[10px] font-medium px-2 py-1 rounded-md text-blue-400 bg-blue-500/15 border border-blue-500/20 hover:bg-blue-500/25 hover:border-blue-500/30 transition-all duration-200"
+                                    >
+                                        + Webhook Connect
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         );
@@ -167,46 +136,92 @@ const RepositoryList: React.FC = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-6 py-8">
             <Header isLogin={isLogin} username={username} />
 
             {isLogin && (
-                <div className="mb-6 flex justify-end space-x-3">
-                    <button
-                        onClick={() => setIsIgnoreModalOpen(true)}
-                        className="inline-flex items-center bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 border border-slate-600/50 hover:border-slate-500 font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg"
-                    >
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                <>
+                    {/* Title bar with settings */}
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-lg font-medium text-white">Repositories</h2>
+
+                        {/* Settings dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                                className="flex items-center space-x-2 px-3 py-1.5 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span>Settings</span>
+                                <svg className={`w-3 h-3 transition-transform ${showSettingsMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            {showSettingsMenu && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-10"
+                                        onClick={() => setShowSettingsMenu(false)}
+                                    />
+                                    <div className="absolute right-0 top-full mt-2 w-48 py-1 bg-[#1a1a1f] border border-white/10 rounded-lg shadow-xl z-20">
+                                        <button
+                                            onClick={() => { setIsPromptModalOpen(true); setShowSettingsMenu(false); }}
+                                            className="w-full px-4 py-2 text-left text-[13px] text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                                        >
+                                            AI 리뷰 프롬프트
+                                        </button>
+                                        <button
+                                            onClick={() => { setIsOpenAiKeyModalOpen(true); setShowSettingsMenu(false); }}
+                                            className="w-full px-4 py-2 text-left text-[13px] text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                                        >
+                                            OpenAI API 키
+                                        </button>
+                                        <button
+                                            onClick={() => { setIsIgnoreModalOpen(true); setShowSettingsMenu(false); }}
+                                            className="w-full px-4 py-2 text-left text-[13px] text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                                        >
+                                            Ignore 패턴
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Not logged in state */}
+            {!isLogin && (
+                <div className="text-center py-24">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 mb-6">
+                        <svg className="w-8 h-8 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                         </svg>
-                        Ignore 설정
-                    </button>
-                    <button
-                        onClick={() => setIsOpenAiKeyModalOpen(true)}
-                        className="inline-flex items-center bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/25"
-                    >
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                        </svg>
-                        OpenAI 키 설정
-                    </button>
-                    <button
-                        onClick={() => setIsPromptModalOpen(true)}
-                        className="inline-flex items-center bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30 hover:border-purple-400 font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/25"
-                    >
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        AI 리뷰 설정
-                    </button>
+                    </div>
+                    <h2 className="text-xl font-medium text-white mb-2">GitHub로 시작하기</h2>
+                    <p className="text-[14px] text-slate-500 mb-8">
+                        GitHub 계정에 연결하여 AI 코드 리뷰를 시작하세요
+                    </p>
                 </div>
             )}
 
+            {/* Repository Grid */}
             {repositories.length !== 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {repositories.map((repo) => (
                         <RepositoryCard key={repo.repository.id} repo={repo} />
                     ))}
+                </div>
+            )}
+
+            {/* Empty State */}
+            {isLogin && repositories.length === 0 && (
+                <div className="text-center py-16">
+                    <p className="text-slate-500">저장소가 없습니다</p>
                 </div>
             )}
 
