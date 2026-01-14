@@ -64,7 +64,7 @@ const RepositoryList: React.FC = () => {
                 className={`group relative rounded-xl overflow-hidden transition-all duration-300 border h-[160px] flex flex-col ${isSkeleton
                     ? 'bg-white/[0.02] border-white/5 animate-pulse'
                     : `bg-white/[0.02] border-white/5 cursor-pointer hover:bg-white/[0.04] hover:border-white/10 ${repo!.existsOpenPullRequest
-                        ? 'border-emerald-500/30'
+                        ? 'border-emerald-500/50 shadow-[0_0_15px_-5px_rgba(16,185,129,0.15)]'
                         : ''
                     }`
                     }`}
@@ -84,9 +84,16 @@ const RepositoryList: React.FC = () => {
                             )}
                         </div>
                         {!isSkeleton && (
-                            <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded border text-slate-500 border-slate-600/50`}>
-                                {repo!.repository.private ? 'Private' : 'Public'}
-                            </span>
+                            <div className="flex items-center space-x-2 ml-3">
+                                {repo!.existsOpenPullRequest && (
+                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border text-emerald-400 border-emerald-500/30 bg-emerald-500/5 animate-pulse">
+                                        Open PR
+                                    </span>
+                                )}
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded border text-slate-500 border-slate-600/50`}>
+                                    {repo!.repository.private ? 'Private' : 'Public'}
+                                </span>
+                            </div>
                         )}
                     </div>
 
