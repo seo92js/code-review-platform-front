@@ -1,26 +1,38 @@
-import { ToastContainer as ReactToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const CustomToastContainer = () => {
     return (
-        <ReactToastContainer
-            position="top-center"
-            autoClose={2000}
-            hideProgressBar={true}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            pauseOnHover
-            toastStyle={{
-                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-                color: '#f8fafc',
-                border: '1px solid #475569',
-                borderRadius: '12px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                fontSize: '12px'
-            }}
-        />
+        <>
+            <style>{`
+                .Toastify__progress-bar {
+                    background: linear-gradient(90deg, #60a5fa, #3b82f6) !important;
+                }
+            `}</style>
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="dark"
+                toastStyle={{
+                    background: 'rgba(17, 17, 24, 0.95)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    color: '#f8fafc',
+                    fontSize: '11px',
+                    padding: '8px 10px',
+                    minHeight: '38px',
+                    lineHeight: '1.4',
+                }}
+            />
+        </>
     );
 };
 

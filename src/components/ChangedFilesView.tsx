@@ -52,33 +52,18 @@ const ChangedFilesView: React.FC = () => {
         fetchReview();
     }, [repo, prNumber]);
 
-    const getFileStatusColor = (status: string) => {
+    const getFileStatusConfig = (status: string) => {
         switch (status) {
             case 'added':
-                return 'bg-green-500/20 text-green-400 border-green-500/30';
+                return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', label: '추가됨' };
             case 'modified':
-                return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+                return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', label: '수정됨' };
             case 'removed':
-                return 'bg-red-500/20 text-red-400 border-red-500/30';
+                return { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20', label: '삭제됨' };
             case 'renamed':
-                return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+                return { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', label: '이름변경' };
             default:
-                return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-        }
-    };
-
-    const getFileStatusText = (status: string) => {
-        switch (status) {
-            case 'added':
-                return '추가됨';
-            case 'modified':
-                return '수정됨';
-            case 'removed':
-                return '삭제됨';
-            case 'renamed':
-                return '이름변경';
-            default:
-                return status;
+                return { bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20', label: status };
         }
     };
 
@@ -103,179 +88,187 @@ const ChangedFilesView: React.FC = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-1 sm:px-2 md:px-3 lg:px-4 py-2 sm:py-3 md:py-4 lg:py-8 overflow-x-hidden">
-            {/* 헤더 */}
-            <div className="mb-2 sm:mb-3 md:mb-4 lg:mb-8 overflow-x-hidden">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 min-w-0">
-                    <div className="flex items-center space-x-1 sm:space-x-1.5 md:space-x-2 lg:space-x-4 min-w-0 flex-1">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+            {/* Header */}
+            <div className="mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex items-center space-x-4">
                         <button
                             onClick={handleBackToPRList}
-                            className="flex items-center justify-center px-1 sm:px-1.5 md:px-2 lg:px-3 py-1 sm:py-1.5 md:py-2 text-xs sm:text-sm font-medium text-gray-300 bg-slate-700/50 border border-slate-600/50 rounded sm:rounded-lg hover:bg-slate-600/50 hover:border-slate-500/50 hover:text-white transition-all duration-200 flex-shrink-0"
+                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all"
                         >
-                            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <h1 className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-white leading-tight break-words min-w-0">
-                            <span className="hidden min-[360px]:inline">PR #{prNumber} - </span>
-                            <span>변경사항</span>
-                        </h1>
+                        <div>
+                            <div className="flex items-center space-x-2 text-[13px] text-slate-500 mb-0.5">
+                                <span>{owner}</span>
+                                <span className="text-slate-600">/</span>
+                                <span>{repo}</span>
+                                <span className="text-slate-600">/</span>
+                                <span className="text-blue-400 font-medium">#{prNumber}</span>
+                            </div>
+                            <h1 className="text-xl font-semibold text-white">변경사항</h1>
+                        </div>
                     </div>
-                    <select
-                        value={selectedModel}
-                        onChange={(e) => setSelectedModel(e.target.value)}
-                        className="px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 md:py-2 text-[10px] sm:text-[11px] md:text-xs lg:text-sm font-medium text-gray-300 bg-slate-700/50 border border-slate-600/50 rounded sm:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                    >
-                        <option value="gpt-4o-mini">gpt-4o-mini</option>
-                    </select>
-                    <button
-                        onClick={async () => {
-                            if (!repo || !prNumber) return;
-                            await requestReview(repo, parseInt(prNumber), selectedModel);
-                            toast.success('리뷰 요청이 완료되었습니다. 잠시 후 리뷰를 확인해주세요.');
-                            navigate(`/repos/${owner}/${repo}`);
-                        }}
-                        className="flex items-center justify-center space-x-1 sm:space-x-1.5 md:space-x-2 px-2 sm:px-2.5 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 text-[10px] sm:text-[11px] md:text-xs lg:text-sm font-semibold text-blue-400 bg-blue-500/20 border border-blue-500/30 rounded sm:rounded-lg hover:bg-blue-500/30 hover:border-blue-400 hover:text-blue-300 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 w-full sm:w-auto flex-shrink-0"
-                    >
-                        <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>리뷰 요청</span>
-                    </button>
+
+                    <div className="flex items-center space-x-3">
+                        <select
+                            value={selectedModel}
+                            onChange={(e) => setSelectedModel(e.target.value)}
+                            className="px-3 py-2 text-[13px] font-medium text-slate-300 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all hover:bg-white/10"
+                        >
+                            <option value="gpt-4o-mini" className="bg-[#1a1a1f]">gpt-4o-mini</option>
+                        </select>
+                        <button
+                            onClick={async () => {
+                                if (!repo || !prNumber) return;
+                                await requestReview(repo, parseInt(prNumber), selectedModel);
+                                toast.success('리뷰 요청이 완료되었습니다.');
+                                navigate(`/repos/${owner}/${repo}`);
+                            }}
+                            className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-[13px] text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-sm shadow-blue-500/20"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>리뷰 요청</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* 변경사항 목록 */}
+            {/* Changed Files List */}
             {changedFiles.length === 0 ? (
-                <div className="text-center py-12">
-                    <h3 className="text-lg font-medium text-white mb-2">변경된 파일이 없습니다</h3>
+                <div className="text-center py-20 bg-white/[0.02] rounded-xl border border-white/5">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 mb-4">
+                        <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h3 className="text-[15px] font-medium text-white mb-1">변경된 파일이 없습니다</h3>
                 </div>
             ) : (
-                <div className="mb-2 sm:mb-3 md:mb-4 lg:mb-8 space-y-1.5 sm:space-y-2 md:space-y-3 lg:space-y-4">
+                <div className="mb-8 space-y-3">
                     {changedFiles.map((file, index) => {
                         const isExpanded = expandedFiles.has(index);
+                        const statusConfig = getFileStatusConfig(file.status);
+
                         return (
-                            <div key={index} className="bg-gradient-to-br from-slate-800 to-slate-900 rounded sm:rounded-lg md:rounded-xl shadow-2xl border border-slate-700/50 overflow-hidden hover:shadow-blue-500/20 hover:shadow-2xl transition-all duration-300 hover:border-blue-500/30 w-full">
+                            <div key={index} className="rounded-xl overflow-hidden bg-white/[0.02] border border-white/5 transition-all duration-300">
                                 <button
                                     onClick={() => toggleFileExpanded(index)}
-                                    className={`w-full flex items-center justify-between px-1.5 sm:px-2 md:px-3 lg:px-4 xl:px-6 text-left overflow-hidden ${isExpanded ? 'pt-2 sm:pt-3 md:pt-4 lg:pt-6 pb-2 sm:pb-3 md:pb-4 lg:pb-6' : 'py-2 sm:py-3 md:py-4 lg:py-6'}`}
+                                    className={`w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.04] transition-colors`}
                                 >
-                                    <div className="flex-1 min-w-0 pr-1 sm:pr-1.5 md:pr-2 overflow-hidden">
-                                        <h3 className="text-[10px] sm:text-[11px] md:text-xs lg:text-sm font-semibold text-white mb-0.5 sm:mb-1 md:mb-1.5 lg:mb-2 break-all leading-tight">{file.filename}</h3>
-                                        <div className="flex flex-wrap items-center gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 xl:gap-3 min-w-0">
-                                            <span className={`inline-flex items-center px-0.5 sm:px-1 md:px-1.5 lg:px-2.5 py-0.5 rounded-full text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs font-medium border ${getFileStatusColor(file.status)}`}>
-                                                {getFileStatusText(file.status)}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center space-x-3 mb-1.5">
+                                            <h3 className="text-[13px] font-medium text-slate-200 font-mono break-all">
+                                                {file.filename}
+                                            </h3>
+                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${statusConfig.bg} ${statusConfig.text} border ${statusConfig.border}`}>
+                                                {statusConfig.label}
                                             </span>
-                                            <span className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs text-gray-400 break-words">
-                                                +{file.additions} -{file.deletions}
-                                            </span>
-                                            <span className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs text-gray-400 break-words hidden min-[360px]:inline">
-                                                ({file.changes})
-                                            </span>
-                                            <span className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs text-gray-400 break-words">
-                                                {file.lines}줄
-                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <div className="flex items-center space-x-2 text-[11px]">
+                                                <span className="text-emerald-400 font-medium">+{file.additions}</span>
+                                                <span className="text-rose-400 font-medium">-{file.deletions}</span>
+                                            </div>
+                                            <span className="text-[11px] text-slate-500">({file.changes} changes, {file.lines} lines)</span>
                                         </div>
                                     </div>
                                     <svg
-                                        className={`w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-gray-400 flex-shrink-0 ml-1 sm:ml-1.5 md:ml-2 lg:ml-4 ${isExpanded ? 'transform rotate-180' : ''}`}
+                                        className={`w-4 h-4 text-slate-500 flex-shrink-0 ml-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
                                     >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
 
-                                <div className={`px-1.5 sm:px-2 md:px-3 lg:px-4 xl:px-6 overflow-hidden ${isExpanded ? 'max-h-[10000px]' : 'max-h-0 pb-0'}`}>
-                                    {/* Patch 내용 */}
-                                    {file.patch && (
-                                        <div className={`mt-1.5 sm:mt-2 md:mt-3 lg:mt-4 ${isExpanded ? '' : 'opacity-0 pointer-events-none'}`}>
-                                            <h4 className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs font-medium text-gray-300 mb-1 sm:mb-1.5 md:mb-2 lg:mb-3">변경 내용:</h4>
-                                            <div className="bg-slate-900/50 rounded sm:rounded-lg border border-slate-700/50 overflow-x-auto max-w-full">
-                                                <div className="p-0 w-full">
+                                {isExpanded && (
+                                    <div className="border-t border-white/5 bg-[#0d1117]">
+                                        {/* Patch Content */}
+                                        {file.patch && (
+                                            <div className="overflow-x-auto">
+                                                <div className="p-4">
                                                     {file.patch.split('\n').map((line, lineIndex) => {
                                                         const isAdded = line.startsWith('+');
                                                         const isDeleted = line.startsWith('-');
-                                                        const isContext = line.startsWith(' ');
                                                         const isHeader = line.startsWith('@@');
 
-                                                        let bgColor = 'bg-white';
-                                                        let textColor = 'text-gray-800';
-                                                        let borderColor = '';
+                                                        let bgColor = 'bg-transparent';
+                                                        let textColor = 'text-slate-400';
 
                                                         if (isAdded) {
-                                                            bgColor = 'bg-green-50';
-                                                            textColor = 'text-green-800';
-                                                            borderColor = 'border-l-4 border-green-400';
+                                                            bgColor = 'bg-emerald-500/10';
+                                                            textColor = 'text-emerald-400';
                                                         } else if (isDeleted) {
-                                                            bgColor = 'bg-red-50';
-                                                            textColor = 'text-red-800';
-                                                            borderColor = 'border-l-4 border-red-400';
+                                                            bgColor = 'bg-rose-500/10';
+                                                            textColor = 'text-rose-400';
                                                         } else if (isHeader) {
-                                                            bgColor = 'bg-blue-50';
-                                                            textColor = 'text-blue-800';
-                                                            borderColor = 'border-l-4 border-blue-400';
-                                                        } else if (isContext) {
-                                                            bgColor = 'bg-gray-50';
-                                                            textColor = 'text-gray-600';
+                                                            bgColor = 'bg-blue-500/10';
+                                                            textColor = 'text-blue-400';
                                                         }
 
                                                         return (
-                                                            <div key={lineIndex} className={`${bgColor} ${borderColor} px-0.5 sm:px-1 md:px-1.5 lg:px-2 xl:px-4 py-0.5 text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs font-mono text-left break-all overflow-wrap-anywhere`}>
-                                                                <span className={`${textColor} break-all`}>
-                                                                    {line}
+                                                            <div key={lineIndex} className={`${bgColor} px-3 py-0.5 text-[12px] font-mono leading-5 text-left flex`}>
+                                                                <span className="select-none w-6 text-right mr-4 text-slate-600 opacity-50 text-[11px]">{lineIndex + 1}</span>
+                                                                <span className={`${textColor} break-all whitespace-pre-wrap`}>
+                                                                    {line || ' '}
                                                                 </span>
                                                             </div>
                                                         );
                                                     })}
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* 파일 링크 */}
-                                    <div className={`mt-1.5 sm:mt-2 md:mt-3 lg:mt-4 flex flex-col sm:flex-row gap-1 sm:gap-1.5 md:gap-2 ${isExpanded ? '' : 'opacity-0 pointer-events-none'}`}>
-                                        {file.blobUrl && (
-                                            <a
-                                                href={file.blobUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center justify-center px-1.5 sm:px-2 md:px-2.5 lg:px-3 py-0.5 sm:py-1 md:py-1.5 text-[9px] sm:text-[10px] md:text-xs lg:text-sm font-medium text-blue-600 bg-blue-50 rounded sm:rounded-lg hover:bg-blue-100 transition-colors duration-200"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                파일 보기
-                                            </a>
-                                        )}
-                                        {file.rawUrl && (
-                                            <a
-                                                href={file.rawUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center justify-center px-1.5 sm:px-2 md:px-2.5 lg:px-3 py-0.5 sm:py-1 md:py-1.5 text-[9px] sm:text-[10px] md:text-xs lg:text-sm font-medium text-green-600 bg-green-50 rounded sm:rounded-lg hover:bg-green-100 transition-colors duration-200"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                Raw 보기
-                                            </a>
-                                        )}
+                                        {/* File Links */}
+                                        <div className="px-4 py-3 bg-white/[0.02] border-t border-white/5 flex flex-wrap gap-2">
+                                            {file.blobUrl && (
+                                                <a
+                                                    href={file.blobUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center px-2.5 py-1.5 text-[11px] font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded hover:bg-blue-500/20 transition-colors"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                    Github에서 파일 보기
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         );
                     })}
                 </div>
             )}
 
-            {/* 리뷰 결과 */}
-            <div className="mt-2 sm:mt-3 md:mt-4 lg:mt-8 overflow-x-hidden">
-                <h2 className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-white mb-1.5 sm:mb-2 md:mb-3 lg:mb-4">AI 리뷰 결과</h2>
+            {/* AI Review Result */}
+            <div className="mt-8">
+                <div className="flex items-center space-x-2 mb-4">
+                    <h2 className="text-[15px] font-semibold text-white">AI 리뷰 결과</h2>
+                </div>
+
                 {reviewResult ? (
-                    <div className="markdown-body text-left text-[9px] sm:text-[10px] md:text-xs lg:text-sm bg-gradient-to-br from-slate-800 to-slate-900 rounded sm:rounded-lg md:rounded-xl shadow-2xl border border-slate-700/50 p-1.5 sm:p-2 md:p-3 lg:p-4 xl:p-6 whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                    <div className="markdown-body text-left rounded-xl bg-white/[0.02] border border-white/5 p-6 text-[13px]">
                         <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{reviewResult}</ReactMarkdown>
                     </div>
                 ) : (
-                    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded sm:rounded-lg md:rounded-xl shadow-2xl border border-slate-700/50 p-2 sm:p-3 md:p-4 lg:p-6 text-center">
-                        <p className="text-[9px] sm:text-[10px] md:text-xs lg:text-sm text-gray-400">리뷰 결과가 없습니다.</p>
+                    <div className="rounded-xl bg-white/[0.02] border border-white/5 p-12 text-center">
+                        <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 mb-3">
+                            <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                            </svg>
+                        </div>
+                        <p className="text-[13px] text-slate-500">리뷰 결과가 없습니다. 리뷰를 요청해주세요.</p>
                     </div>
                 )}
             </div>
