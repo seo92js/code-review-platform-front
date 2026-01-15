@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getOpenAiKey, updateOpenAiKey } from '../api/github';
+import { getErrorMessage } from '../utils/errorMessages';
 import { toast } from 'react-toastify';
 
 interface OpenAiKeyModalProps {
@@ -32,8 +33,7 @@ const OpenAiKeyModal: React.FC<OpenAiKeyModalProps> = ({ isOpen, onClose }) => {
             const data = await getOpenAiKey();
             setApiKey(data || '');
         } catch (error) {
-            console.error('OpenAI 키 조회 실패:', error);
-            toast.error('OpenAI 키를 불러오는데 실패했습니다.');
+            toast.error(getErrorMessage(error));
         } finally {
             setIsLoading(false);
         }
@@ -56,8 +56,7 @@ const OpenAiKeyModal: React.FC<OpenAiKeyModalProps> = ({ isOpen, onClose }) => {
             toast.success('OpenAI API 키가 성공적으로 저장되었습니다.');
             onClose();
         } catch (error) {
-            console.error('OpenAI 키 저장 실패:', error);
-            toast.error('OpenAI 키 저장에 실패했습니다.');
+            toast.error(getErrorMessage(error));
         } finally {
             setIsSaving(false);
         }

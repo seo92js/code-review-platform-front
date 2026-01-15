@@ -4,6 +4,7 @@ import { getPullRequestWithChanges } from '../api/pull-request';
 import LoadingSpinner from './LoadingSpinner';
 import type { ChangedFile } from '../types/pullRequest';
 import { requestReview, getReview } from '../api/pull-request';
+import { getErrorMessage } from '../utils/errorMessages';
 import { toast } from 'react-toastify';
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
@@ -27,7 +28,7 @@ const ChangedFilesView: React.FC = () => {
                 const changes = await getPullRequestWithChanges(repo, parseInt(prNumber));
                 setChangedFiles(changes);
             } catch (error) {
-                console.error('PR 변경사항 조회 실패:', error);
+                toast.error(getErrorMessage(error));
             } finally {
                 setIsLoading(false);
             }
@@ -44,7 +45,7 @@ const ChangedFilesView: React.FC = () => {
                 const review = await getReview(repo, parseInt(prNumber));
                 setReviewResult(review);
             } catch (error) {
-                console.error('리뷰 결과 조회 실패:', error);
+                toast.error(getErrorMessage(error));
                 setReviewResult(null);
             }
         };
@@ -124,9 +125,13 @@ const ChangedFilesView: React.FC = () => {
                         <button
                             onClick={async () => {
                                 if (!repo || !prNumber) return;
-                                await requestReview(repo, parseInt(prNumber), selectedModel);
-                                toast.success('리뷰 요청이 완료되었습니다.');
-                                navigate(`/repos/${owner}/${repo}`);
+                                try {
+                                    await requestReview(repo, parseInt(prNumber), selectedModel);
+                                    toast.success('리뷰 요청이 완료되었습니다.');
+                                    navigate(`/repos/${owner}/${repo}`);
+                                } catch (error) {
+                                    toast.error(getErrorMessage(error));
+                                }
                             }}
                             className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-[13px] text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-sm shadow-blue-500/20"
                         >

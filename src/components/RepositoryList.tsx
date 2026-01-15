@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { checkLogin, getRepositories, getUsername, registerWebhook } from '../api/github';
+import { getErrorMessage } from '../utils/errorMessages';
 import Header from './Header';
 import LoadingSpinner from './LoadingSpinner';
 import SystemPromptModal from './SystemPromptModal';
@@ -34,7 +35,7 @@ const RepositoryList: React.FC = () => {
                     setRepositories(repos);
                 }
             } catch (error) {
-                console.error('Error fetching data:', error);
+                toast.error(getErrorMessage(error));
             } finally {
                 setIsLoading(false);
             }
@@ -50,8 +51,7 @@ const RepositoryList: React.FC = () => {
             toast.success('웹훅이 성공적으로 연결되었습니다!');
             setTimeout(() => window.location.reload(), 1000);
         } catch (error) {
-            toast.error('웹훅 연결에 실패했습니다.');
-            console.error('웹훅 연결 오류:', error);
+            toast.error(getErrorMessage(error));
         }
     };
 
@@ -65,7 +65,7 @@ const RepositoryList: React.FC = () => {
                 className={`group relative rounded-xl overflow-hidden transition-all duration-300 border h-[160px] flex flex-col ${isSkeleton
                     ? 'bg-white/[0.02] border-white/5 animate-pulse'
                     : `bg-white/[0.02] border-white/5 cursor-pointer hover:bg-white/[0.04] hover:border-white/10 ${repo!.existsOpenPullRequest
-                        ? 'border-emerald-500/50 shadow-[0_0_15px_-5px_rgba(16,185,129,0.15)]'
+                        ? 'border-emerald-500/50 animate-border-pulse'
                         : ''
                     }`
                     }`}
