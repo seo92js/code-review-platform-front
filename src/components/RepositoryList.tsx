@@ -65,7 +65,7 @@ const RepositoryList: React.FC = () => {
                 className={`group relative rounded-xl overflow-hidden transition-all duration-300 border h-[160px] flex flex-col ${isSkeleton
                     ? 'bg-white/[0.02] border-white/5 animate-pulse'
                     : `bg-white/[0.02] border-white/5 cursor-pointer hover:bg-white/[0.04] hover:border-white/10 ${repo!.existsOpenPullRequest
-                        ? 'border-emerald-500/50 shadow-[0_0_15px_-5px_rgba(16,185,129,0.15)]'
+                        ? 'border-emerald-500/50 animate-border-pulse'
                         : ''
                     }`
                     }`}
