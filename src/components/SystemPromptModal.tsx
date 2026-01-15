@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getSystemPrompt, updateSystemPrompt } from '../api/github';
+import { getErrorMessage } from '../utils/errorMessages';
 import { toast } from 'react-toastify';
 
 interface SystemPromptModalProps {
@@ -28,8 +29,7 @@ const SystemPromptModal: React.FC<SystemPromptModalProps> = ({ isOpen, onClose }
             const data = await getSystemPrompt();
             setPrompt(data);
         } catch (error) {
-            console.error('프롬프트 조회 실패:', error);
-            toast.error('프롬프트를 불러오는데 실패했습니다.');
+            toast.error(getErrorMessage(error));
         } finally {
             setIsLoading(false);
         }
@@ -42,8 +42,7 @@ const SystemPromptModal: React.FC<SystemPromptModalProps> = ({ isOpen, onClose }
             toast.success('시스템 프롬프트가 성공적으로 저장되었습니다.');
             onClose();
         } catch (error) {
-            console.error('프롬프트 저장 실패:', error);
-            toast.error('프롬프트 저장에 실패했습니다.');
+            toast.error(getErrorMessage(error));
         } finally {
             setIsSaving(false);
         }

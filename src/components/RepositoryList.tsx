@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { checkLogin, getRepositories, getUsername, registerWebhook } from '../api/github';
+import { getErrorMessage } from '../utils/errorMessages';
 import Header from './Header';
 import LoadingSpinner from './LoadingSpinner';
 import SystemPromptModal from './SystemPromptModal';
@@ -34,7 +35,7 @@ const RepositoryList: React.FC = () => {
                     setRepositories(repos);
                 }
             } catch (error) {
-                console.error('Error fetching data:', error);
+                toast.error(getErrorMessage(error));
             } finally {
                 setIsLoading(false);
             }
@@ -50,8 +51,7 @@ const RepositoryList: React.FC = () => {
             toast.success('웹훅이 성공적으로 연결되었습니다!');
             setTimeout(() => window.location.reload(), 1000);
         } catch (error) {
-            toast.error('웹훅 연결에 실패했습니다.');
-            console.error('웹훅 연결 오류:', error);
+            toast.error(getErrorMessage(error));
         }
     };
 

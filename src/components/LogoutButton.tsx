@@ -1,4 +1,6 @@
 import axios from "axios";
+import { toast } from 'react-toastify';
+import { getErrorMessage } from '../utils/errorMessages';
 
 interface LogoutButtonProps {
     username: string;
@@ -13,7 +15,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({ username }) => {
 
             window.location.href = "http://localhost:5173";
         } catch (error) {
-            console.log(error);
+            toast.error(getErrorMessage(error));
         }
     };
 

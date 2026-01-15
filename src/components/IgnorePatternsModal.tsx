@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getIgnorePatterns, updateIgnorePatterns } from '../api/github';
+import { getErrorMessage } from '../utils/errorMessages';
 import { toast } from 'react-toastify';
 
 interface IgnorePatternsModalProps {
@@ -30,8 +31,7 @@ const IgnorePatternsModal: React.FC<IgnorePatternsModalProps> = ({ isOpen, onClo
             const data = await getIgnorePatterns();
             setPatterns(data || []);
         } catch (error) {
-            console.error('Ignore 패턴 조회 실패:', error);
-            toast.error('Ignore 패턴을 불러오는데 실패했습니다.');
+            toast.error(getErrorMessage(error));
         } finally {
             setIsLoading(false);
         }
@@ -59,8 +59,7 @@ const IgnorePatternsModal: React.FC<IgnorePatternsModalProps> = ({ isOpen, onClo
             toast.success('Ignore 패턴이 성공적으로 저장되었습니다.');
             onClose();
         } catch (error) {
-            console.error('Ignore 패턴 저장 실패:', error);
-            toast.error('Ignore 패턴 저장에 실패했습니다.');
+            toast.error(getErrorMessage(error));
         } finally {
             setIsSaving(false);
         }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPullRequests } from '../api/pull-request';
+import { getErrorMessage } from '../utils/errorMessages';
+import { toast } from 'react-toastify';
 import LoadingSpinner from './LoadingSpinner';
 import type { PullRequest } from '../types/pullRequest';
 
@@ -19,7 +21,7 @@ const PullRequestList: React.FC = () => {
                 const data = await getPullRequests(repo);
                 setPullRequests(data);
             } catch (error) {
-                console.error('PR 조회 실패:', error);
+                toast.error(getErrorMessage(error));
             } finally {
                 setIsLoading(false);
             }
