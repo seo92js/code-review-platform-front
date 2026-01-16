@@ -13,7 +13,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({ username }) => {
                 withCredentials: true
             });
 
-            window.location.href = "http://localhost:5173";
+            window.location.href = "/";
         } catch (error) {
             toast.error(getErrorMessage(error));
         }
