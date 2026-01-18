@@ -92,8 +92,8 @@ const SettingsPage: React.FC = () => {
 
         setIsSaving(true);
         try {
-            // API 키가 변경된 경우 먼저 유효성 검증
-            if (apiKey.trim() && !apiKey.startsWith('sk-***')) {
+            // API 키가 변경된 경우 먼저 유효성 검증 (마스킹된 키가 아닐 경우에만)
+            if (apiKey.trim() && !apiKey.includes('****')) {
                 const isValid = await validateOpenAiKey(apiKey);
                 if (!isValid) {
                     toast.error('유효하지 않은 OpenAI API 키입니다.');
@@ -112,7 +112,7 @@ const SettingsPage: React.FC = () => {
             await Promise.all([
                 updateReviewSettings(reviewSettingsPayload),
                 updateIgnorePatterns(patterns),
-                apiKey.trim() && !apiKey.startsWith('sk-***') ? updateOpenAiKey(apiKey) : Promise.resolve(),
+                !apiKey.includes('****') ? updateOpenAiKey(apiKey) : Promise.resolve(),
             ]);
 
             toast.success('설정이 저장되었습니다.');

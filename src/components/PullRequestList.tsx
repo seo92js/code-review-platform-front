@@ -45,11 +45,7 @@ const PullRequestList: React.FC = () => {
                     bg: 'bg-emerald-500/10',
                     text: 'text-emerald-400',
                     border: 'border-emerald-500/20',
-                    icon: (
-                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                    ),
+                    icon: null,
                     label: '리뷰 완료'
                 };
             case 'IN_PROGRESS':
@@ -57,11 +53,7 @@ const PullRequestList: React.FC = () => {
                     bg: 'bg-blue-500/10',
                     text: 'text-blue-400',
                     border: 'border-blue-500/20',
-                    icon: (
-                        <svg className="w-3 h-3 mr-1 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                        </svg>
-                    ),
+                    icon: null,
                     label: '리뷰 진행 중'
                 };
             case 'PENDING':
@@ -69,11 +61,7 @@ const PullRequestList: React.FC = () => {
                     bg: 'bg-amber-500/10',
                     text: 'text-amber-400',
                     border: 'border-amber-500/20',
-                    icon: (
-                        <svg className="w-3 h-3 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                    ),
+                    icon: null,
                     label: '리뷰 대기 중'
                 };
             default:

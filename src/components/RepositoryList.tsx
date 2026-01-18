@@ -112,10 +112,19 @@ const RepositoryList: React.FC = () => {
                         ) : (
                             <>
                                 {repo!.hasWebhook ? (
-                                    <span className="text-[10px] font-medium px-2 py-1 text-emerald-400 flex items-center">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (window.confirm('이미 연결된 웹훅입니다. 설정을 갱신하시겠습니까?\n(DB 초기화 등으로 시크릿이 변경된 경우 갱신이 필요합니다.)')) {
+                                                handleWebhookConnect(repo!.repository.name, e);
+                                            }
+                                        }}
+                                        className="text-[10px] font-medium px-2 py-1 text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-md flex items-center hover:bg-emerald-500/10 transition-all cursor-pointer"
+                                        title="클릭하여 웹훅 설정 갱신"
+                                    >
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
                                         Webhook Connected
-                                    </span>
+                                    </button>
                                 ) : (
                                     <button
                                         onClick={(e) => handleWebhookConnect(repo!.repository.name, e)}
