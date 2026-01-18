@@ -5,7 +5,7 @@ import { checkLogin, getRepositories, getUsername, registerWebhook } from '../ap
 import { getErrorMessage } from '../utils/errorMessages';
 import Header from './Header';
 import LoadingSpinner from './LoadingSpinner';
-import SystemPromptModal from './SystemPromptModal';
+import ReviewSettingsModal from './ReviewSettingsModal';
 import IgnorePatternsModal from './IgnorePatternsModal';
 import OpenAiKeyModal from './OpenAiKeyModal';
 import type { RepositoryResponse } from '../types/repository';
@@ -180,7 +180,7 @@ const RepositoryList: React.FC = () => {
                                             onClick={() => { setIsPromptModalOpen(true); setShowSettingsMenu(false); }}
                                             className="w-full px-4 py-2 text-left text-[13px] text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
                                         >
-                                            AI 리뷰 프롬프트
+                                            AI 리뷰 설정
                                         </button>
                                         <button
                                             onClick={() => { setIsOpenAiKeyModalOpen(true); setShowSettingsMenu(false); }}
@@ -233,7 +233,7 @@ const RepositoryList: React.FC = () => {
                 </div>
             )}
 
-            <SystemPromptModal
+            <ReviewSettingsModal
                 isOpen={isPromptModalOpen}
                 onClose={() => setIsPromptModalOpen(false)}
             />
