@@ -150,3 +150,13 @@ export const updateOpenAiKey = async (key: string) => {
     });
     return response.data;
 }
+
+/**
+ * OpenAI 키 유효성 검증
+ */
+export const validateOpenAiKey = async (key: string): Promise<boolean> => {
+    const response = await axios.post('/api/github/openai/validate', { key }, {
+        withCredentials: true
+    });
+    return response.data;
+}
