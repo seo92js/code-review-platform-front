@@ -5,9 +5,6 @@ import { checkLogin, getRepositories, getUsername, registerWebhook } from '../ap
 import { getErrorMessage } from '../utils/errorMessages';
 import Header from './Header';
 import LoadingSpinner from './LoadingSpinner';
-import SystemPromptModal from './SystemPromptModal';
-import IgnorePatternsModal from './IgnorePatternsModal';
-import OpenAiKeyModal from './OpenAiKeyModal';
 import type { RepositoryResponse } from '../types/repository';
 
 const RepositoryList: React.FC = () => {
@@ -16,10 +13,6 @@ const RepositoryList: React.FC = () => {
     const [repositories, setRepositories] = useState<RepositoryResponse[]>([]);
     const [username, setUsername] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
-    const [isIgnoreModalOpen, setIsIgnoreModalOpen] = useState(false);
-    const [isOpenAiKeyModalOpen, setIsOpenAiKeyModalOpen] = useState(false);
-    const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
     useEffect(() => {
         const fetchLoginStatus = async () => {
@@ -153,51 +146,16 @@ const RepositoryList: React.FC = () => {
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-lg font-medium text-white">Repositories</h2>
 
-                        {/* Settings dropdown */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                                className="flex items-center space-x-2 px-3 py-1.5 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <span>Settings</span>
-                                <svg className={`w-3 h-3 transition-transform ${showSettingsMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-
-                            {showSettingsMenu && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-10"
-                                        onClick={() => setShowSettingsMenu(false)}
-                                    />
-                                    <div className="absolute right-0 top-full mt-2 w-48 py-1 bg-[#1a1a1f] border border-white/10 rounded-lg shadow-xl z-20">
-                                        <button
-                                            onClick={() => { setIsPromptModalOpen(true); setShowSettingsMenu(false); }}
-                                            className="w-full px-4 py-2 text-left text-[13px] text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-                                        >
-                                            AI 리뷰 프롬프트
-                                        </button>
-                                        <button
-                                            onClick={() => { setIsOpenAiKeyModalOpen(true); setShowSettingsMenu(false); }}
-                                            className="w-full px-4 py-2 text-left text-[13px] text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-                                        >
-                                            OpenAI API 키
-                                        </button>
-                                        <button
-                                            onClick={() => { setIsIgnoreModalOpen(true); setShowSettingsMenu(false); }}
-                                            className="w-full px-4 py-2 text-left text-[13px] text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-                                        >
-                                            Ignore 패턴
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                        <button
+                            onClick={() => navigate('/settings')}
+                            className="flex items-center space-x-2 px-3 py-1.5 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>Settings</span>
+                        </button>
                     </div>
                 </>
             )}
@@ -232,19 +190,6 @@ const RepositoryList: React.FC = () => {
                     <p className="text-slate-500">저장소가 없습니다</p>
                 </div>
             )}
-
-            <SystemPromptModal
-                isOpen={isPromptModalOpen}
-                onClose={() => setIsPromptModalOpen(false)}
-            />
-            <IgnorePatternsModal
-                isOpen={isIgnoreModalOpen}
-                onClose={() => setIsIgnoreModalOpen(false)}
-            />
-            <OpenAiKeyModal
-                isOpen={isOpenAiKeyModalOpen}
-                onClose={() => setIsOpenAiKeyModalOpen(false)}
-            />
         </div>
     );
 };

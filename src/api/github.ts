@@ -79,22 +79,33 @@ export const getReview = async (repository: string, prNumber: number) => {
     return response.data;
 }
 
+// 리뷰 설정 타입 정의
+export type ReviewTone = 'FRIENDLY' | 'STRICT' | 'NEUTRAL';
+export type ReviewFocus = 'PRAISE_ONLY' | 'IMPROVEMENT_ONLY' | 'BOTH';
+export type DetailLevel = 'CONCISE' | 'STANDARD' | 'DETAILED';
+
+export interface ReviewSettings {
+    tone: ReviewTone;
+    focus: ReviewFocus;
+    detailLevel: DetailLevel;
+    customInstructions: string | null;
+}
+
 /**
- * 시스템 프롬프트 조회
+ * 리뷰 설정 조회
  */
-export const getSystemPrompt = async () => {
-    const response = await axios.get('/api/github/prompt', {
+export const getReviewSettings = async (): Promise<ReviewSettings> => {
+    const response = await axios.get('/api/github/review-settings', {
         withCredentials: true
     });
     return response.data;
 }
 
 /**
- * 시스템 프롬프트 업데이트
+ * 리뷰 설정 업데이트
  */
-export const updateSystemPrompt = async (prompt: string) => {
-    const response = await axios.patch('/api/github/prompt', null, {
-        params: { prompt },
+export const updateReviewSettings = async (settings: ReviewSettings): Promise<number> => {
+    const response = await axios.patch('/api/github/review-settings', settings, {
         withCredentials: true
     });
     return response.data;
@@ -135,6 +146,16 @@ export const getOpenAiKey = async () => {
  */
 export const updateOpenAiKey = async (key: string) => {
     const response = await axios.patch('/api/github/openai', { key }, {
+        withCredentials: true
+    });
+    return response.data;
+}
+
+/**
+ * OpenAI 키 유효성 검증
+ */
+export const validateOpenAiKey = async (key: string): Promise<boolean> => {
+    const response = await axios.post('/api/github/openai/validate', { key }, {
         withCredentials: true
     });
     return response.data;
