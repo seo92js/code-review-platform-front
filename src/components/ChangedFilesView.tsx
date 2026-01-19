@@ -4,6 +4,7 @@ import { getPullRequestWithChanges } from '../api/pull-request';
 import LoadingSpinner from './LoadingSpinner';
 import type { ChangedFile } from '../types/pullRequest';
 import { requestReview, getReview } from '../api/pull-request';
+import { getReviewSettings } from '../api/github';
 import { getErrorMessage } from '../utils/errorMessages';
 import { toast } from 'react-toastify';
 import ReactMarkdown from 'react-markdown'
@@ -20,13 +21,17 @@ const ChangedFilesView: React.FC = () => {
     const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
 
     useEffect(() => {
-        const fetchChangedFiles = async () => {
+        const fetchData = async () => {
             if (!owner || !repo || !prNumber) return;
 
             try {
                 setIsLoading(true);
-                const changes = await getPullRequestWithChanges(repo, parseInt(prNumber));
+                const [changes, settings] = await Promise.all([
+                    getPullRequestWithChanges(repo, parseInt(prNumber)),
+                    getReviewSettings()
+                ]);
                 setChangedFiles(changes);
+                setSelectedModel(settings.openaiModel || 'gpt-4o-mini');
             } catch (error) {
                 toast.error(getErrorMessage(error));
             } finally {
@@ -34,7 +39,7 @@ const ChangedFilesView: React.FC = () => {
             }
         };
 
-        fetchChangedFiles();
+        fetchData();
     }, [owner, repo, prNumber]);
 
     useEffect(() => {
@@ -115,13 +120,9 @@ const ChangedFilesView: React.FC = () => {
                     </div>
 
                     <div className="flex items-center space-x-3">
-                        <select
-                            value={selectedModel}
-                            onChange={(e) => setSelectedModel(e.target.value)}
-                            className="px-3 py-2 text-[13px] font-medium text-slate-300 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all hover:bg-white/10"
-                        >
-                            <option value="gpt-4o-mini" className="bg-[#1a1a1f]">gpt-4o-mini</option>
-                        </select>
+                        <span className="px-3 py-2 text-[12px] font-medium text-slate-400 bg-white/5 border border-white/10 rounded-lg">
+                            {selectedModel}
+                        </span>
                         <button
                             onClick={async () => {
                                 if (!repo || !prNumber) return;
