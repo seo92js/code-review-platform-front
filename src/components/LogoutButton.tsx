@@ -20,21 +20,24 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({ username }) => {
     };
 
     return (
-        <div className="flex items-center space-x-4">
-            {/* User Info */}
-            <div className="flex items-center space-x-2.5">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-xs">
-                    {username.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-[13px] font-medium text-slate-300">{username}</span>
+        <div className="flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+            {/* User Avatar */}
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium text-[10px] sm:text-xs">
+                {username.charAt(0).toUpperCase()}
             </div>
+
+            {/* Username - hidden on very small screens */}
+            <span className="hidden sm:block ml-2 text-sm font-medium text-slate-300">{username}</span>
+
+            {/* Divider */}
+            <div className="w-px h-3 sm:h-4 mx-1.5 sm:mx-2.5 bg-white/10"></div>
 
             {/* Logout Button */}
             <button
                 onClick={handleLogout}
-                className="group flex items-center space-x-1.5 px-2.5 py-1.5 text-[12px] text-slate-500 hover:text-slate-300 rounded-md hover:bg-white/5 transition-all duration-200"
+                className="text-[10px] sm:text-xs text-slate-400 hover:text-slate-200 transition-colors duration-200"
             >
-                <span>Logout</span>
+                Logout
             </button>
         </div>
     );

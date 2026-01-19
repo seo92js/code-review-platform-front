@@ -10,7 +10,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ isLogin, username }) => {
     return (
         <header className="mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
                 {/* Logo & Brand */}
                 <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center shadow-glow-sm">
@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ isLogin, username }) => {
                 </div>
 
                 {/* Auth Section */}
-                <div>
+                <div className="flex-shrink-0">
                     {isLogin && username ? <LogoutButton username={username} /> : <LoginButton />}
                 </div>
             </div>
