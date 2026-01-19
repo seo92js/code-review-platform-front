@@ -89,6 +89,8 @@ export interface ReviewSettings {
     focus: ReviewFocus;
     detailLevel: DetailLevel;
     customInstructions: string | null;
+    autoReviewEnabled: boolean;
+    openaiModel: string;
 }
 
 /**
