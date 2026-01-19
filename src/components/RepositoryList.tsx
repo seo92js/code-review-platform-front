@@ -179,7 +179,7 @@ const RepositoryList: React.FC = () => {
                     </div>
                     <h2 className="text-xl font-medium text-white mb-2">GitHub로 시작하기</h2>
                     <p className="text-[14px] text-slate-500 mb-8">
-                        GitHub 계정에 연결하여 AI 코드 리뷰를 시작하세요
+                        GitHub 연동으로 PR 코드 리뷰 자동화를 시작하세요
                     </p>
                 </div>
             )}
