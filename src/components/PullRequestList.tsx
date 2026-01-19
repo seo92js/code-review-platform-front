@@ -64,6 +64,22 @@ const PullRequestList: React.FC = () => {
                     icon: null,
                     label: '리뷰 대기 중'
                 };
+            case 'FAILED':
+                return {
+                    bg: 'bg-red-500/10',
+                    text: 'text-red-400',
+                    border: 'border-red-500/20',
+                    icon: null,
+                    label: '리뷰 실패'
+                };
+            case 'NEW_CHANGES':
+                return {
+                    bg: 'bg-purple-500/10',
+                    text: 'text-purple-400',
+                    border: 'border-purple-500/20',
+                    icon: null,
+                    label: '새 변경사항'
+                };
             default:
                 return {
                     bg: 'bg-slate-500/10',
