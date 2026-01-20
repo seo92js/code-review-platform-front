@@ -1,24 +1,36 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getPullRequests } from '../api/pull-request';
 import { getErrorMessage } from '../utils/errorMessages';
 import { toast } from 'react-toastify';
 import LoadingSpinner from './LoadingSpinner';
 import type { PullRequest } from '../types/pullRequest';
 
+interface LocationState {
+    repositoryId?: number;
+}
+
 const PullRequestList: React.FC = () => {
     const { owner, repo } = useParams<{ owner: string; repo: string }>();
+    const location = useLocation();
     const navigate = useNavigate();
     const [pullRequests, setPullRequests] = useState<PullRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const state = location.state as LocationState | null;
+    const repositoryId = state?.repositoryId;
+
     useEffect(() => {
         const fetchPullRequests = async () => {
-            if (!owner || !repo) return;
+            if (!repositoryId) {
+                toast.error('저장소 정보가 없습니다. 저장소 목록에서 다시 선택해주세요.');
+                navigate('/');
+                return;
+            }
 
             try {
                 setIsLoading(true);
-                const data = await getPullRequests(repo);
+                const data = await getPullRequests(repositoryId);
                 setPullRequests(data);
             } catch (error) {
                 toast.error(getErrorMessage(error));
@@ -28,7 +40,7 @@ const PullRequestList: React.FC = () => {
         };
 
         fetchPullRequests();
-    }, [owner, repo]);
+    }, [repositoryId, navigate]);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -93,7 +105,7 @@ const PullRequestList: React.FC = () => {
 
     const handlePRClick = (prNumber: number, status: string) => {
         navigate(`/repos/${owner}/${repo}/pulls/${prNumber}`, {
-            state: { status }
+            state: { status, repositoryId }
         });
     };
 

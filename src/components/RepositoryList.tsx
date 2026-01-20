@@ -75,8 +75,8 @@ const RepositoryList: React.FC = () => {
         }
     };
 
-    const handleCardClick = (owner: string, repositoryName: string) => {
-        navigate(`/repos/${owner}/${repositoryName}`);
+    const handleCardClick = (owner: string, repositoryName: string, repositoryId: number) => {
+        navigate(`/repos/${owner}/${repositoryName}`, { state: { repositoryId } });
     };
 
     const RepositoryCard = ({ repo, isSkeleton = false }: { repo?: RepositoryResponse; isSkeleton?: boolean }) => {
@@ -89,7 +89,7 @@ const RepositoryList: React.FC = () => {
                         : ''
                     }`
                     }`}
-                onClick={() => !isSkeleton && handleCardClick(repo!.repository.owner, repo!.repository.name)}
+                onClick={() => !isSkeleton && handleCardClick(repo!.repository.owner, repo!.repository.name, repo!.repository.id)}
             >
                 {/* Content */}
                 <div className="p-4 flex flex-col h-full">

@@ -3,9 +3,9 @@ import axios from 'axios';
 /**
  * PR 조회
  */
-export const getPullRequests = async (repositoryName: string) => {
+export const getPullRequests = async (repositoryId: number) => {
     const response = await axios.get('/api/pull-requests', {
-        params: { repositoryName },
+        params: { repositoryId },
         withCredentials: true
     });
 
@@ -15,9 +15,9 @@ export const getPullRequests = async (repositoryName: string) => {
 /**
  * PR 변경사항 조회
  */
-export const getPullRequestWithChanges = async (repository: string, prNumber: number) => {
+export const getPullRequestWithChanges = async (repositoryId: number, prNumber: number) => {
     const response = await axios.get('/api/pull-request/changes', {
-        params: { repository, prNumber },
+        params: { repositoryId, prNumber },
         withCredentials: true
     });
     return response.data;
@@ -27,9 +27,9 @@ export const getPullRequestWithChanges = async (repository: string, prNumber: nu
 /**
  * 리뷰 요청 API
  */
-export const requestReview = async (repository: string, prNumber: number, model?: string) => {
+export const requestReview = async (repositoryId: number, prNumber: number, model?: string) => {
     await axios.post('/api/pull-request/review', null, {
-        params: { repository, prNumber, model },
+        params: { repositoryId, prNumber, model },
         withCredentials: true
     });
 }
@@ -37,9 +37,9 @@ export const requestReview = async (repository: string, prNumber: number, model?
 /**
  * 리뷰 결과 조회 API
  */
-export const getReview = async (repository: string, prNumber: number) => {
+export const getReview = async (repositoryId: number, prNumber: number) => {
     const response = await axios.get('/api/pull-request/review', {
-        params: { repository, prNumber },
+        params: { repositoryId, prNumber },
         withCredentials: true
     });
 
