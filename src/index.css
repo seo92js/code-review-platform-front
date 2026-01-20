@@ -38,6 +38,7 @@ body {
   background: linear-gradient(135deg, var(--color-space-900) 0%, var(--color-space-800) 50%, var(--color-space-700) 100%);
   background-attachment: fixed;
   color: var(--color-text-primary);
+  overscroll-behavior: none;
 }
 
 /* Subtle background gradient */
