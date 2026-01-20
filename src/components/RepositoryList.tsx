@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import axios from '../api/axios';
 import { checkLogin, getRepositories, getUsername, registerWebhook } from '../api/github';
 import { getErrorMessage } from '../utils/errorMessages';
 import Header from './Header';
@@ -13,29 +14,55 @@ const RepositoryList: React.FC = () => {
     const [repositories, setRepositories] = useState<RepositoryResponse[]>([]);
     const [username, setUsername] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchLoginStatus = async () => {
-            try {
-                const status = await checkLogin();
-                setIsLogin(status);
-
-                if (status) {
-                    const repos = await getRepositories();
-                    const name = await getUsername();
-
-                    setUsername(name);
-                    setRepositories(repos);
-                }
-            } catch (error) {
-                toast.error(getErrorMessage(error));
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
+        const savedTime = localStorage.getItem('repoLastUpdated');
+        if (savedTime) {
+            setLastUpdated(savedTime);
+        }
         fetchLoginStatus();
     }, []);
+
+    const fetchLoginStatus = async () => {
+        try {
+            const status = await checkLogin();
+            setIsLogin(status);
+
+            if (status) {
+                const repos = await getRepositories();
+                const name = await getUsername();
+
+                setUsername(name);
+                setRepositories(repos);
+
+                // Update timestamp
+                const now = new Date();
+                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                setLastUpdated(timeString);
+                localStorage.setItem('repoLastUpdated', timeString);
+            }
+        } catch (error) {
+            toast.error(getErrorMessage(error));
+        } finally {
+            setIsLoading(false);
+            setIsRefreshing(false);
+        }
+    };
+
+    const handleRefresh = async () => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        try {
+            await axios.post('/api/github/repositories/refresh');
+            await fetchLoginStatus();
+            toast.success('저장소 목록을 갱신했습니다.');
+        } catch (error) {
+            toast.error('저장소 목록 갱신에 실패했습니다.');
+            setIsRefreshing(false);
+        }
+    };
 
     const handleWebhookConnect = async (repositoryName: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -153,7 +180,31 @@ const RepositoryList: React.FC = () => {
                 <>
                     {/* Title bar with settings */}
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-medium text-white">Repositories</h2>
+                        <div className="flex items-center space-x-4">
+                            <div className="flex flex-col items-start">
+                                <h2 className="text-lg font-medium text-white">Repositories</h2>
+                                {lastUpdated && (
+                                    <span className="text-[11px] text-slate-500">Updated: {lastUpdated}</span>
+                                )}
+                            </div>
+                            <button
+                                onClick={handleRefresh}
+                                disabled={isRefreshing}
+                                className={`p-1.5 rounded-lg transition-all ${isRefreshing
+                                    ? 'text-slate-600 bg-slate-800/50 cursor-not-allowed'
+                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+                                title="목록 새로고침"
+                            >
+                                <svg
+                                    className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </button>
+                        </div>
 
                         <button
                             onClick={() => navigate('/settings')}
