@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = ({ isLogin, username }) => {
                     </div>
                     <div className="text-left">
                         <h1 className="text-xl font-bold text-gradient">AISenpai</h1>
-                        <p className="text-xs text-slate-400">Your AI Code Reviewer</p>
+                        <p className="text-xs text-slate-400">Your PR Agent</p>
                     </div>
                 </div>
 
