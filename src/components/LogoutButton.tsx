@@ -9,7 +9,7 @@ interface LogoutButtonProps {
 const LogoutButton: React.FC<LogoutButtonProps> = ({ username }) => {
     const handleLogout = async () => {
         try {
-            await axios.post('/oauth2/logout', {
+            await axios.post('/oauth2/logout', null, {
                 withCredentials: true
             });
 
