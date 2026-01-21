@@ -1,6 +1,7 @@
 import React from 'react';
 import LoginButton from './LoginButton';
 import LogoutButton from './LogoutButton';
+import NotificationDropdown from './NotificationDropdown';
 
 interface HeaderProps {
     isLogin: boolean;
@@ -25,8 +26,16 @@ const Header: React.FC<HeaderProps> = ({ isLogin, username }) => {
                 </div>
 
                 {/* Auth Section */}
-                <div className="flex-shrink-0">
-                    {isLogin && username ? <LogoutButton username={username} /> : <LoginButton />}
+                <div className="flex-shrink-0 flex items-center space-x-3">
+                    {isLogin && username ? (
+                        <>
+                            <NotificationDropdown />
+                            <div className="h-6 w-px bg-white/10 mx-2"></div>
+                            <LogoutButton username={username} />
+                        </>
+                    ) : (
+                        <LoginButton />
+                    )}
                 </div>
             </div>
         </header>
