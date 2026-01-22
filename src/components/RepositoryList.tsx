@@ -85,7 +85,7 @@ const RepositoryList: React.FC = () => {
     const RepositoryCard = ({ repo, isSkeleton = false }: { repo?: RepositoryResponse; isSkeleton?: boolean }) => {
         return (
             <div
-                className={`group relative rounded-xl overflow-hidden transition-all duration-300 border h-[160px] flex flex-col ${isSkeleton
+                className={`ml-1 mr-1 group relative rounded-xl overflow-hidden transition-all duration-300 border h-[160px] flex flex-col ${isSkeleton
                     ? 'bg-white/[0.02] border-white/5 animate-pulse'
                     : `bg-white/[0.02] border-white/5 cursor-pointer hover:bg-white/[0.04] hover:border-white/10 ${repo!.existsOpenPullRequest
                         ? 'border-emerald-500/50 animate-border-pulse'
