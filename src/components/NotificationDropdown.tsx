@@ -73,7 +73,7 @@ const NotificationDropdown: React.FC = () => {
             }
         }
 
-        if (notification.repositoryName && notification.prNumber) {
+        if (notification.loginId && notification.repositoryName && notification.prNumber) {
             navigate(`/repos/${notification.loginId}/${notification.repositoryName}/pulls/${notification.prNumber}`);
         }
     };
