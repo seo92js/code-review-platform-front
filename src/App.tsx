@@ -6,6 +6,8 @@ import ChangedFilesView from "./components/ChangedFilesView";
 import SettingsPage from "./components/SettingsPage";
 import CustomToastContainer from "./components/ToastContainer";
 import Footer from "./components/Footer";
+import MainLayout from './layouts/MainLayout';
+import { AuthProvider } from './contexts/AuthContext';
 import { usePageView } from "./hooks/usePageView";
 import './api/axios';
 
@@ -13,18 +15,20 @@ function AppContent() {
     usePageView();
 
     return (
-        <div className="App min-h-screen flex flex-col">
-            <div className="flex-1">
+        <AuthProvider>
+            <div className="App min-h-screen flex flex-col">
                 <Routes>
-                    <Route path="/" element={<RepositoryList />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/repos/:owner/:repo" element={<PullRequestList />} />
-                    <Route path="/repos/:owner/:repo/pulls/:prNumber" element={<ChangedFilesView />} />
+                    <Route element={<MainLayout />}>
+                        <Route path="/" element={<RepositoryList />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                        <Route path="/repos/:owner/:repo" element={<PullRequestList />} />
+                        <Route path="/repos/:owner/:repo/pulls/:prNumber" element={<ChangedFilesView />} />
+                    </Route>
                 </Routes>
+                <Footer />
+                <CustomToastContainer />
             </div>
-            <Footer />
-            <CustomToastContainer />
-        </div>
+        </AuthProvider>
     );
 }
 

@@ -2,17 +2,16 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
-import { checkLogin, getRepositories, getUsername, registerWebhook } from '../api/github';
+import { getRepositories, registerWebhook } from '../api/github';
 import { getErrorMessage } from '../utils/errorMessages';
-import Header from './Header';
+import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 import type { RepositoryResponse } from '../types/repository';
 
 const RepositoryList: React.FC = () => {
     const navigate = useNavigate();
-    const [isLogin, setIsLogin] = useState(false);
+    const { isLogin, isLoading: isAuthLoading, refreshLoginStatus } = useAuth();
     const [repositories, setRepositories] = useState<RepositoryResponse[]>([]);
-    const [username, setUsername] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -22,27 +21,29 @@ const RepositoryList: React.FC = () => {
         if (savedTime) {
             setLastUpdated(savedTime);
         }
-        fetchLoginStatus();
     }, []);
 
-    const fetchLoginStatus = async () => {
+    useEffect(() => {
+        if (!isAuthLoading) {
+            fetchRepositories();
+        }
+    }, [isLogin, isAuthLoading]);
+
+    const fetchRepositories = async () => {
+        if (!isLogin) {
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            const status = await checkLogin();
-            setIsLogin(status);
+            const repos = await getRepositories();
+            setRepositories(repos);
 
-            if (status) {
-                const repos = await getRepositories();
-                const name = await getUsername();
-
-                setUsername(name);
-                setRepositories(repos);
-
-                // Update timestamp
-                const now = new Date();
-                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                setLastUpdated(timeString);
-                localStorage.setItem('repoLastUpdated', timeString);
-            }
+            // Update timestamp
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            setLastUpdated(timeString);
+            localStorage.setItem('repoLastUpdated', timeString);
         } catch (error) {
             toast.error(getErrorMessage(error));
         } finally {
@@ -56,7 +57,8 @@ const RepositoryList: React.FC = () => {
         setIsRefreshing(true);
         try {
             await axios.post('/api/github/repositories/refresh');
-            await fetchLoginStatus();
+            await refreshLoginStatus();
+            await fetchRepositories();
             toast.success('저장소 목록을 갱신했습니다.');
         } catch (error) {
             toast.error('저장소 목록 갱신에 실패했습니다.');
@@ -69,7 +71,8 @@ const RepositoryList: React.FC = () => {
         try {
             await registerWebhook(repositoryName);
             toast.success('웹훅이 성공적으로 연결되었습니다!');
-            setTimeout(() => window.location.reload(), 1000);
+            // 저장소 목록만 갱신 (전체 리로드 방지)
+            fetchRepositories();
         } catch (error) {
             toast.error(getErrorMessage(error));
         }
@@ -168,14 +171,12 @@ const RepositoryList: React.FC = () => {
         );
     };
 
-    if (isLoading) {
+    if (isAuthLoading || isLoading) {
         return <LoadingSpinner message="저장소 목록을 불러오는 중..." />;
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col flex-1">
-            <Header isLogin={isLogin} username={username} />
-
+        <div className="flex flex-col flex-1">
             {isLogin && (
                 <>
                     {/* Title bar with settings */}
