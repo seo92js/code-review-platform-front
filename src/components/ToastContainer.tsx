@@ -11,14 +11,14 @@ const CustomToastContainer = () => {
             `}</style>
             <ToastContainer
                 position="top-right"
-                autoClose={3000}
+                autoClose={2000}
                 hideProgressBar={false}
                 newestOnTop
                 closeOnClick
                 rtl={false}
-                pauseOnFocusLoss
+                pauseOnFocusLoss={false}
                 draggable
-                pauseOnHover
+                pauseOnHover={false}
                 theme="dark"
                 toastStyle={{
                     background: 'rgba(17, 17, 24, 0.95)',
