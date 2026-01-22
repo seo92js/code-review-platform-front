@@ -1,36 +1,28 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getPullRequests } from '../api/pull-request';
 import { getErrorMessage } from '../utils/errorMessages';
 import { toast } from 'react-toastify';
 import LoadingSpinner from './LoadingSpinner';
 import type { PullRequest } from '../types/pullRequest';
 
-interface LocationState {
-    repositoryId?: number;
-}
-
 const PullRequestList: React.FC = () => {
     const { owner, repo } = useParams<{ owner: string; repo: string }>();
-    const location = useLocation();
     const navigate = useNavigate();
     const [pullRequests, setPullRequests] = useState<PullRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const state = location.state as LocationState | null;
-    const repositoryId = state?.repositoryId;
-
     useEffect(() => {
         const fetchPullRequests = async () => {
-            if (!repositoryId) {
-                toast.error('저장소 정보가 없습니다. 저장소 목록에서 다시 선택해주세요.');
+            if (!owner || !repo) {
+                toast.error('저장소 정보가 없습니다.');
                 navigate('/');
                 return;
             }
 
             try {
                 setIsLoading(true);
-                const data = await getPullRequests(repositoryId);
+                const data = await getPullRequests(owner, repo);
                 setPullRequests(data);
             } catch (error) {
                 toast.error(getErrorMessage(error));
@@ -40,7 +32,7 @@ const PullRequestList: React.FC = () => {
         };
 
         fetchPullRequests();
-    }, [repositoryId, navigate]);
+    }, [owner, repo, navigate]);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -103,10 +95,8 @@ const PullRequestList: React.FC = () => {
         }
     };
 
-    const handlePRClick = (prNumber: number, status: string) => {
-        navigate(`/repos/${owner}/${repo}/pulls/${prNumber}`, {
-            state: { status, repositoryId }
-        });
+    const handlePRClick = (prNumber: number) => {
+        navigate(`/repos/${owner}/${repo}/pulls/${prNumber}`);
     };
 
     const handleBackToRepos = () => {
@@ -158,7 +148,7 @@ const PullRequestList: React.FC = () => {
                             <div
                                 key={pr.prNumber}
                                 className="group relative rounded-xl transition-all duration-200 bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 cursor-pointer"
-                                onClick={() => handlePRClick(pr.prNumber, pr.status)}
+                                onClick={() => handlePRClick(pr.prNumber)}
                             >
                                 <div className="p-5">
                                     <div className="flex items-start justify-between">

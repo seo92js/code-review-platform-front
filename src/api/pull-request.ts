@@ -3,9 +3,8 @@ import axios from 'axios';
 /**
  * PR 조회
  */
-export const getPullRequests = async (repositoryId: number) => {
-    const response = await axios.get('/api/pull-requests', {
-        params: { repositoryId },
+export const getPullRequests = async (owner: string, repo: string) => {
+    const response = await axios.get(`/api/pull-request/${owner}/${repo}`, {
         withCredentials: true
     });
 
@@ -15,9 +14,8 @@ export const getPullRequests = async (repositoryId: number) => {
 /**
  * PR 변경사항 조회
  */
-export const getPullRequestWithChanges = async (repositoryId: number, prNumber: number) => {
-    const response = await axios.get('/api/pull-request/changes', {
-        params: { repositoryId, prNumber },
+export const getPullRequestWithChanges = async (owner: string, repo: string, prNumber: number) => {
+    const response = await axios.get(`/api/pull-request/${owner}/${repo}/${prNumber}/changes`, {
         withCredentials: true
     });
     return response.data;
@@ -27,9 +25,9 @@ export const getPullRequestWithChanges = async (repositoryId: number, prNumber: 
 /**
  * 리뷰 요청 API
  */
-export const requestReview = async (repositoryId: number, prNumber: number, model?: string) => {
-    await axios.post('/api/pull-request/review', null, {
-        params: { repositoryId, prNumber, model },
+export const requestReview = async (owner: string, repo: string, prNumber: number, model?: string) => {
+    await axios.post(`/api/pull-request/${owner}/${repo}/${prNumber}/review`, null, {
+        params: { model },
         withCredentials: true
     });
 }
@@ -37,9 +35,8 @@ export const requestReview = async (repositoryId: number, prNumber: number, mode
 /**
  * 리뷰 결과 조회 API
  */
-export const getReview = async (repositoryId: number, prNumber: number) => {
-    const response = await axios.get('/api/pull-request/review', {
-        params: { repositoryId, prNumber },
+export const getReview = async (owner: string, repo: string, prNumber: number) => {
+    const response = await axios.get(`/api/pull-request/${owner}/${repo}/${prNumber}/review`, {
         withCredentials: true
     });
 

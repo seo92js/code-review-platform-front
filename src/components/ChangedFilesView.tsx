@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getPullRequestWithChanges } from '../api/pull-request';
 import LoadingSpinner from './LoadingSpinner';
 import type { ChangedFile } from '../types/pullRequest';
@@ -11,14 +11,8 @@ import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/github-dark.css'
 
-interface LocationState {
-    status?: string;
-    repositoryId?: number;
-}
-
 const ChangedFilesView: React.FC = () => {
     const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
-    const location = useLocation();
     const navigate = useNavigate();
     const [changedFiles, setChangedFiles] = useState<ChangedFile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -26,13 +20,10 @@ const ChangedFilesView: React.FC = () => {
     const [reviewResult, setReviewResult] = useState<any>(null);
     const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
 
-    const state = location.state as LocationState | null;
-    const repositoryId = state?.repositoryId;
-
     useEffect(() => {
         const fetchData = async () => {
-            if (!repositoryId || !prNumber) {
-                toast.error('저장소 정보가 없습니다. 저장소 목록에서 다시 선택해주세요.');
+            if (!owner || !repo || !prNumber) {
+                toast.error('저장소 정보가 없습니다.');
                 navigate('/');
                 return;
             }
@@ -40,7 +31,7 @@ const ChangedFilesView: React.FC = () => {
             try {
                 setIsLoading(true);
                 const [changes, settings] = await Promise.all([
-                    getPullRequestWithChanges(repositoryId, parseInt(prNumber)),
+                    getPullRequestWithChanges(owner, repo, parseInt(prNumber)),
                     getReviewSettings()
                 ]);
                 setChangedFiles(changes);
@@ -53,14 +44,14 @@ const ChangedFilesView: React.FC = () => {
         };
 
         fetchData();
-    }, [repositoryId, prNumber, navigate]);
+    }, [owner, repo, prNumber, navigate]);
 
     useEffect(() => {
         const fetchReview = async () => {
-            if (!repositoryId || !prNumber) return;
+            if (!owner || !repo || !prNumber) return;
 
             try {
-                const review = await getReview(repositoryId, parseInt(prNumber));
+                const review = await getReview(owner, repo, parseInt(prNumber));
                 setReviewResult(review);
             } catch (error) {
                 toast.error(getErrorMessage(error));
@@ -69,7 +60,7 @@ const ChangedFilesView: React.FC = () => {
         };
 
         fetchReview();
-    }, [repositoryId, prNumber]);
+    }, [owner, repo, prNumber]);
 
     const getFileStatusConfig = (status: string) => {
         switch (status) {
@@ -87,7 +78,7 @@ const ChangedFilesView: React.FC = () => {
     };
 
     const handleBackToPRList = () => {
-        navigate(`/repos/${owner}/${repo}`, { state: { repositoryId } });
+        navigate(`/repos/${owner}/${repo}`);
     };
 
     const toggleFileExpanded = (index: number) => {
@@ -138,11 +129,11 @@ const ChangedFilesView: React.FC = () => {
                         </span>
                         <button
                             onClick={async () => {
-                                if (!repositoryId || !prNumber) return;
+                                if (!owner || !repo || !prNumber) return;
                                 try {
-                                    await requestReview(repositoryId, parseInt(prNumber), selectedModel);
+                                    await requestReview(owner, repo, parseInt(prNumber), selectedModel);
                                     toast.success('리뷰 요청이 완료되었습니다.');
-                                    navigate(`/repos/${owner}/${repo}`, { state: { repositoryId } });
+                                    navigate(`/repos/${owner}/${repo}`);
                                 } catch (error) {
                                     toast.error(getErrorMessage(error));
                                 }
