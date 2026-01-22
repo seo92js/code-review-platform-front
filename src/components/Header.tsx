@@ -2,13 +2,11 @@ import React from 'react';
 import LoginButton from './LoginButton';
 import LogoutButton from './LogoutButton';
 import NotificationDropdown from './NotificationDropdown';
+import { useAuth } from '../contexts/AuthContext';
 
-interface HeaderProps {
-    isLogin: boolean;
-    username: string | null;
-}
+const Header: React.FC = () => {
+    const { isLogin, username } = useAuth();
 
-const Header: React.FC<HeaderProps> = ({ isLogin, username }) => {
     return (
         <header className="mb-8">
             <div className="flex items-center justify-between gap-3">

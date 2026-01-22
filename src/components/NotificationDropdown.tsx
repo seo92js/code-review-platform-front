@@ -7,6 +7,7 @@ const NotificationDropdown: React.FC = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [hasUnread, setHasUnread] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
@@ -20,10 +21,26 @@ const NotificationDropdown: React.FC = () => {
         }
     };
 
+    useEffect(() => {
+        if (isOpen) {
+            fetchNotifications();
+        } else {
+            fetchNotifications();
+        }
+    }, [isOpen]);
+
     // Initial fetch
     useEffect(() => {
         fetchNotifications();
     }, []);
+
+    const handleRefresh = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        await fetchNotifications();
+        setTimeout(() => setIsRefreshing(false), 500); // Visual feedback delay
+    };
 
     // Toggle dropdown
     const toggleDropdown = () => {
@@ -89,12 +106,23 @@ const NotificationDropdown: React.FC = () => {
                 <div className="fixed sm:absolute top-[72px] sm:top-auto left-4 right-4 sm:left-auto sm:right-0 sm:mt-2 sm:w-80 bg-[#161b22] border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
                     <div className="p-2 px-3 border-b border-white/5 flex justify-between items-center bg-[#0d1117]">
                         <h3 className="text-[11px] font-bold text-slate-400 tracking-widest">NOTIFICATIONS</h3>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleMarkAllAsRead(); }}
-                            className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors font-medium"
-                        >
-                            모두 읽음
-                        </button>
+                        <div className="flex items-center space-x-3">
+                            <button
+                                onClick={handleRefresh}
+                                className={`text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/5 ${isRefreshing ? 'animate-spin' : ''}`}
+                                title="알림 새로고침"
+                            >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleMarkAllAsRead(); }}
+                                className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                            >
+                                모두 읽음
+                            </button>
+                        </div>
                     </div>
 
                     <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
