@@ -2,19 +2,25 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 /**
- * 401 또는 403 에러가 발생하면 토스트 알림 후 홈으로 리다이렉트
+ * 세션 만료 시 홈으로 리다이렉트
+ * 401/403 에러 발생 시
+ * 세션 만료로 인해 OAuth 리다이렉트가 발생하면 CORS 에러(Network Error)가 발생하므로 이 경우도 처리
  */
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    const isAuthError = error.response?.status === 401 || error.response?.status === 403;
+
+    // Network Error는 OAuth 리다이렉트로 인한 CORS 에러일 수 있음
+    const isNetworkError = error.code === 'ERR_NETWORK' || error.message === 'Network Error';
+
+    if (isAuthError || isNetworkError) {
       if (window.location.pathname !== '/') {
         toast.warning('세션이 만료되었습니다. 다시 로그인해주세요.', {
           toastId: 'session-expired',
-          onClose: () => {
-            window.location.href = '/';
-          }
         });
+        
+        window.location.href = '/';
       }
     }
     return Promise.reject(error);
