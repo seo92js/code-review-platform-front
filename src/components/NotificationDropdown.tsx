@@ -151,13 +151,16 @@ const NotificationDropdown: React.FC = () => {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between space-x-2">
-                                                <p className={`text-[13px] truncate ${!notification.isRead ? 'text-white font-semibold' : 'text-slate-400'}`} title={notification.prTitle}>
-                                                    <span className="text-[10px] font-bold opacity-70 mr-1.5">
-                                                        {notification.type === 'NEW_PR' && 'PR'}
-                                                        {notification.type === 'REVIEW_COMPLETE' && 'AI'}
-                                                        {notification.type === 'REVIEW_FAILED' && 'FAIL'}
+                                                <p className={`text-[13px] truncate ${!notification.isRead ? 'text-white font-semibold' : 'text-slate-400'}`} title={notification.repositoryName}>
+                                                    <span className={`text-[10px] font-bold mr-1.5 ${notification.type === 'NEW_PR' ? 'text-green-400' :
+                                                        notification.type === 'REVIEW_COMPLETE' ? 'text-blue-400' :
+                                                            'text-red-400'
+                                                        }`}>
+                                                        {notification.type === 'NEW_PR' && '새로운 PR'}
+                                                        {notification.type === 'REVIEW_COMPLETE' && '리뷰완료'}
+                                                        {notification.type === 'REVIEW_FAILED' && '리뷰실패'}
                                                     </span>
-                                                    {notification.prTitle || 'No Title'}
+                                                    {notification.repositoryName || 'Unknown'}
                                                 </p>
                                                 <span className="text-[9px] text-slate-600 flex-shrink-0">
                                                     {new Date(notification.createdAt).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
