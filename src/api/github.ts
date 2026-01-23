@@ -90,6 +90,7 @@ export interface ReviewSettings {
     detailLevel: DetailLevel;
     customInstructions: string | null;
     autoReviewEnabled: boolean;
+    autoPostToGithub: boolean;
     openaiModel: string;
 }
 
