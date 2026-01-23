@@ -42,6 +42,7 @@ const SettingsPage: React.FC = () => {
     const [detailLevel, setDetailLevel] = useState<DetailLevel>('STANDARD');
     const [customInstructions, setCustomInstructions] = useState('');
     const [autoReviewEnabled, setAutoReviewEnabled] = useState(false);
+    const [autoPostToGithub, setAutoPostToGithub] = useState(false);
     const [openaiModel, setOpenaiModel] = useState('gpt-4o-mini');
 
     // Ignore Patterns
@@ -75,6 +76,7 @@ const SettingsPage: React.FC = () => {
             setDetailLevel(reviewSettings.detailLevel);
             setCustomInstructions(reviewSettings.customInstructions || '');
             setAutoReviewEnabled(reviewSettings.autoReviewEnabled || false);
+            setAutoPostToGithub(reviewSettings.autoPostToGithub || false);
             setOpenaiModel(reviewSettings.openaiModel || 'gpt-4o-mini');
 
             setPatterns(ignorePatterns || []);
@@ -112,6 +114,7 @@ const SettingsPage: React.FC = () => {
                 detailLevel,
                 customInstructions: customInstructions.trim() || null,
                 autoReviewEnabled,
+                autoPostToGithub,
                 openaiModel,
             };
 
@@ -243,6 +246,20 @@ const SettingsPage: React.FC = () => {
                                     className={`relative w-11 h-6 rounded-full transition-colors ${autoReviewEnabled ? 'bg-blue-500' : 'bg-white/10'}`}
                                 >
                                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${autoReviewEnabled ? 'translate-x-5' : ''}`} />
+                                </button>
+                            </div>
+
+                            {/* GitHub PR에 자동 게시 */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[13px] text-white">GitHub PR에 자동 게시</span>
+                                    <span className="text-[12px] text-slate-500">리뷰 완료 시 PR 댓글로 게시</span>
+                                </div>
+                                <button
+                                    onClick={() => setAutoPostToGithub(!autoPostToGithub)}
+                                    className={`relative w-11 h-6 rounded-full transition-colors ${autoPostToGithub ? 'bg-blue-500' : 'bg-white/10'}`}
+                                >
+                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${autoPostToGithub ? 'translate-x-5' : ''}`} />
                                 </button>
                             </div>
 
