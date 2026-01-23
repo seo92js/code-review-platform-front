@@ -260,6 +260,21 @@ const SettingsPage: React.FC = () => {
                                 </select>
                             </div>
 
+                            {/* Privacy Notice */}
+                            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-start space-x-3">
+                                <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div className="space-y-1 text-left break-keep">
+                                    <p className="text-[11px] text-blue-200/80 leading-relaxed">
+                                        코드 변경내역이 LLM으로 전송되며, 민감한 정보(비밀번호, 키 등)가 포함되지 않도록 주의해주세요.
+                                    </p>
+                                    <p className="text-[11px] text-blue-200/80 leading-relaxed">
+                                        민감한 파일은 아래 'Ignore 패턴'에 추가하여 리뷰에서 제외할 수 있습니다.
+                                    </p>
+                                </div>
+                            </div>
+
                             {/* OpenAI API 키 */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
