@@ -5,9 +5,11 @@ import { getErrorMessage } from '../utils/errorMessages';
 
 const TARGET_PRESETS = [
     { label: 'Java', value: '**/*.java' },
-    { label: 'React/TS', value: '**/*.{ts,tsx}' },
-    { label: 'Spring Controller', value: '**/*Controller.java' },
-    { label: 'Tests', value: 'src/test/**' },
+    { label: 'JS / TS', value: '**/*.{js,ts}' },
+    { label: 'React', value: '**/*.{jsx,tsx}' },
+    { label: 'Vue.js', value: '**/*.vue' },
+    { label: 'Python', value: '**/*.py' },
+    { label: 'C++', value: '**/*.{cpp,h}' },
     { label: 'All Files', value: '**/*' },
 ];
 
@@ -101,17 +103,19 @@ const RuleManagement: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="space-y-2">
                 <div>
-                    <h3 className="text-[14px] font-medium text-white">Rules</h3>
-                    <p className="text-[12px] text-slate-500">팀 컨벤션을 정의하고 파일별로 적용하세요.</p>
+                    <h3 className="text-[13px] font-medium text-white">규칙</h3>
                 </div>
-                <button
-                    onClick={() => handleOpenModal()}
-                    className="px-3 py-1.5 text-[12px] font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/20 transition-colors"
-                >
-                    + 규칙 추가
-                </button>
+
+                <div className="flex justify-end pt-1">
+                    <button
+                        onClick={() => handleOpenModal()}
+                        className="px-3 py-1.5 text-[12px] font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/20 transition-colors"
+                    >
+                        + 규칙 추가
+                    </button>
+                </div>
             </div>
 
             <div className="space-y-3">
