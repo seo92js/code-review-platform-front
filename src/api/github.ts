@@ -88,7 +88,7 @@ export interface ReviewSettings {
     tone: ReviewTone;
     focus: ReviewFocus;
     detailLevel: DetailLevel;
-    customInstructions: string | null;
+
     autoReviewEnabled: boolean;
     autoPostToGithub: boolean;
     openaiModel: string;

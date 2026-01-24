@@ -7,6 +7,7 @@ import {
     getOpenAiKey, updateOpenAiKey, validateOpenAiKey,
     ReviewTone, ReviewFocus, DetailLevel, ReviewSettings
 } from '../api/github';
+import RuleManagement from './RuleManagement';
 import { getErrorMessage } from '../utils/errorMessages';
 
 // Option types
@@ -40,7 +41,7 @@ const SettingsPage: React.FC = () => {
     const [tone, setTone] = useState<ReviewTone>('NEUTRAL');
     const [focus, setFocus] = useState<ReviewFocus>('BOTH');
     const [detailLevel, setDetailLevel] = useState<DetailLevel>('STANDARD');
-    const [customInstructions, setCustomInstructions] = useState('');
+
     const [autoReviewEnabled, setAutoReviewEnabled] = useState(false);
     const [autoPostToGithub, setAutoPostToGithub] = useState(false);
     const [openaiModel, setOpenaiModel] = useState('gpt-4o-mini');
@@ -74,7 +75,7 @@ const SettingsPage: React.FC = () => {
             setTone(reviewSettings.tone);
             setFocus(reviewSettings.focus);
             setDetailLevel(reviewSettings.detailLevel);
-            setCustomInstructions(reviewSettings.customInstructions || '');
+
             setAutoReviewEnabled(reviewSettings.autoReviewEnabled || false);
             setAutoPostToGithub(reviewSettings.autoPostToGithub || false);
             setOpenaiModel(reviewSettings.openaiModel || 'gpt-4o-mini');
@@ -112,7 +113,7 @@ const SettingsPage: React.FC = () => {
                 tone,
                 focus,
                 detailLevel,
-                customInstructions: customInstructions.trim() || null,
+
                 autoReviewEnabled,
                 autoPostToGithub,
                 openaiModel,
@@ -217,21 +218,12 @@ const SettingsPage: React.FC = () => {
                         <OptionGroup label="" options={focusOptions} value={focus} onChange={setFocus} />
                         <OptionGroup label="" options={detailOptions} value={detailLevel} onChange={setDetailLevel} />
 
-                        <div className="space-y-1.5">
-                            <div className="flex items-center justify-between">
-                                <label className="text-[12px] text-white">추가 지시사항 (선택)</label>
-                                <span className={`text-[11px] ${customInstructions.length >= 1000 ? 'text-rose-400' : customInstructions.length >= 800 ? 'text-amber-400' : 'text-slate-600'}`}>
-                                    {customInstructions.length} / 1000
-                                </span>
-                            </div>
-                            <textarea
-                                value={customInstructions}
-                                onChange={(e) => e.target.value.length <= 1000 && setCustomInstructions(e.target.value)}
-                                maxLength={1000}
-                                className="w-full h-24 p-3 bg-white/[0.03] border border-white/10 rounded-lg text-[13px] text-white placeholder-slate-600 focus:outline-none focus:border-white/20 resize-none font-mono transition-colors"
-                                placeholder="예: React/TypeScript 프로젝트입니다. 보안 취약점에 특히 주의해주세요."
-                            />
+                        {/* Rule */}
+                        <div className="pt-2">
+                            <RuleManagement />
                         </div>
+
+
 
                         {/* OpenAI Settings */}
                         <div className="pt-4 border-t border-white/5 space-y-4">
