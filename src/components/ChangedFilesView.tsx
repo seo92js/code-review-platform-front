@@ -111,6 +111,39 @@ const ChangedFilesView: React.FC = () => {
         return <LoadingSpinner message="변경사항을 불러오는 중..." />;
     }
 
+    const extractDiffContext = (patch: string, targetLine: number) => {
+        if (!patch || !targetLine) return null;
+        const lines = patch.split('\n');
+        let currentNewLine = 0;
+        let foundIndex = -1;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (line.startsWith('@@')) {
+                const match = line.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+                if (match) {
+                    currentNewLine = parseInt(match[1], 10);
+                }
+                continue;
+            }
+
+            if (line.startsWith(' ') || line.startsWith('+')) {
+                if (currentNewLine === targetLine) {
+                    foundIndex = i;
+                    break;
+                }
+                currentNewLine++;
+            }
+        }
+
+        if (foundIndex !== -1) {
+            let start = Math.max(0, foundIndex - 2);
+            let end = Math.min(lines.length, foundIndex + 2);
+            return lines.slice(start, end + 1);
+        }
+        return null;
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-6 py-8">
             {/* Header */}
@@ -285,7 +318,6 @@ const ChangedFilesView: React.FC = () => {
                     <div className="space-y-6">
                         {/* General Review */}
                         <div className="markdown-body text-left rounded-xl bg-white/[0.02] border border-white/5 p-6 text-[13px]">
-                            <h3 className="text-sm font-medium text-slate-300 mb-3 block border-b border-white/5 pb-2">전반적 리뷰</h3>
                             <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
                                 {(() => {
                                     try {
@@ -305,36 +337,64 @@ const ChangedFilesView: React.FC = () => {
                                 if ((parsed as ReviewResult).comments && Array.isArray((parsed as ReviewResult).comments) && (parsed as ReviewResult).comments.length > 0) {
                                     return (
                                         <div className="rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden">
-                                            <div className="px-4 py-3 border-b border-white/5 bg-white/[0.02]">
-                                                <h3 className="text-sm font-medium text-slate-300">상세 코멘트 ({(parsed as ReviewResult).comments.length})</h3>
-                                            </div>
                                             <div className="divide-y divide-white/5">
-                                                {(parsed as ReviewResult).comments.map((comment: ReviewComment, idx: number) => (
-                                                    <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <div className="flex items-center space-x-2 font-mono text-xs">
-                                                                <span className="text-blue-400">{comment.path || comment.file}</span>
-                                                                <span className="text-slate-600">:</span>
-                                                                <span className="text-amber-400">Line {comment.line}</span>
-                                                            </div>
-                                                        </div>
+                                                {(parsed as ReviewResult).comments.map((comment: ReviewComment, idx: number) => {
+                                                    const targetFile = changedFiles.find(f => f.filename === (comment.path || comment.file));
+                                                    const diffContext = targetFile?.patch ? extractDiffContext(targetFile.patch, comment.line) : null;
 
-                                                        {comment.codeSnippet && (
-                                                            <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
-                                                                <div className="px-3 py-1.5 bg-white/5 border-b border-white/5 text-[11px] text-slate-500 font-mono">
-                                                                    Context
-                                                                </div>
-                                                                <div className="p-3 text-[12px] font-mono text-slate-300 overflow-x-auto whitespace-pre">
-                                                                    {comment.codeSnippet}
+                                                    return (
+                                                        <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <div className="flex items-center space-x-2 font-mono text-xs">
+                                                                    <span className="text-blue-400">{comment.path || comment.file}</span>
                                                                 </div>
                                                             </div>
-                                                        )}
 
-                                                        <div className="text-[13px] text-slate-300 leading-relaxed pl-1">
-                                                            <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{comment.body || comment.comment}</ReactMarkdown>
+                                                            {/* Diff Context display */}
+                                                            {diffContext ? (
+                                                                <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
+                                                                    <div className="overflow-x-auto">
+                                                                        {diffContext.map((line, i) => {
+                                                                            const isAdded = line.startsWith('+');
+                                                                            const isDeleted = line.startsWith('-');
+                                                                            const isHeader = line.startsWith('@@');
+
+                                                                            let bgColor = 'bg-transparent';
+                                                                            let textColor = 'text-slate-400';
+
+                                                                            if (isAdded) {
+                                                                                bgColor = 'bg-emerald-500/10';
+                                                                                textColor = 'text-emerald-400';
+                                                                            } else if (isDeleted) {
+                                                                                bgColor = 'bg-rose-500/10';
+                                                                                textColor = 'text-rose-400';
+                                                                            } else if (isHeader) {
+                                                                                bgColor = 'bg-blue-500/10';
+                                                                                textColor = 'text-blue-400';
+                                                                            }
+
+                                                                            return (
+                                                                                <div key={i} className={`${bgColor} px-3 py-0.5 text-[11px] font-mono leading-relaxed text-left whitespace-pre`}>
+                                                                                    <span className={`${textColor}`}>{line}</span>
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            ) : comment.codeSnippet && (
+                                                                <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
+                                                                    <div className="p-3 text-[12px] font-mono text-slate-300 overflow-x-auto whitespace-pre">
+                                                                        {comment.codeSnippet}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            <div className="text-[13px] text-slate-300 leading-relaxed pl-1">
+                                                                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{comment.body || comment.comment}</ReactMarkdown>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    )
+                                                })}
                                             </div>
                                         </div>
                                     );
