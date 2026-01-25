@@ -105,7 +105,7 @@ const RuleManagement: React.FC = () => {
         <div className="space-y-4">
             <div className="space-y-2">
                 <div>
-                    <h3 className="text-[13px] font-medium text-white">규칙</h3>
+                    <h3 className="text-[13px] font-medium text-white">AI 리뷰 규칙</h3>
                 </div>
 
                 <div className="flex justify-end pt-1">
