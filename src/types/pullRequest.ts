@@ -20,3 +20,14 @@ export interface ChangedFile {
     contentsUrl: string;
     patch: string;
 }
+
+export interface ReviewComment {
+    file: string;
+    line: number;
+    comment: string;
+}
+
+export interface AiReviewResult {
+    generalReview: string;
+    comments: ReviewComment[];
+}
