@@ -24,6 +24,7 @@ export interface ChangedFile {
 export interface ReviewComment {
     file: string;
     line: number;
+    codeSnippet?: string;
     comment: string;
 }
 

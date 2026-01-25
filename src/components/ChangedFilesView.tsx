@@ -301,7 +301,13 @@ const ChangedFilesView: React.FC = () => {
                                                             <div className="flex items-center space-x-2 font-mono text-xs">
                                                                 <span className="text-blue-400">{comment.file}</span>
                                                                 <span className="text-slate-600">:</span>
-                                                                <span className="text-amber-400">Lines {comment.line}</span>
+                                                                {comment.line > 0 ? (
+                                                                    <span className="text-amber-400">Lines {comment.line}</span>
+                                                                ) : (
+                                                                    <span className="text-slate-500 italic bg-white/5 px-1.5 py-0.5 rounded font-mono">
+                                                                        {comment.codeSnippet ? `Ref: ${comment.codeSnippet.trim()}` : "(Context missing)"}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
                                                         <div className="text-[13px] text-slate-300 leading-relaxed">
