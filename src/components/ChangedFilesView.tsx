@@ -268,8 +268,54 @@ const ChangedFilesView: React.FC = () => {
                 </div>
 
                 {reviewResult ? (
-                    <div className="markdown-body text-left rounded-xl bg-white/[0.02] border border-white/5 p-6 text-[13px]">
-                        <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{reviewResult}</ReactMarkdown>
+                    <div className="space-y-6">
+                        {/* General Review */}
+                        <div className="markdown-body text-left rounded-xl bg-white/[0.02] border border-white/5 p-6 text-[13px]">
+                            <h3 className="text-sm font-medium text-slate-300 mb-3 block border-b border-white/5 pb-2">전반적 리뷰</h3>
+                            <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+                                {(() => {
+                                    try {
+                                        const parsed = typeof reviewResult === 'string' ? JSON.parse(reviewResult) : reviewResult;
+                                        return parsed.generalReview || (typeof reviewResult === 'string' ? reviewResult : JSON.stringify(reviewResult));
+                                    } catch {
+                                        return String(reviewResult);
+                                    }
+                                })()}
+                            </ReactMarkdown>
+                        </div>
+
+                        {/* Inline Comments List */}
+                        {(() => {
+                            try {
+                                const parsed = typeof reviewResult === 'string' ? JSON.parse(reviewResult) : reviewResult;
+                                if (parsed.comments && Array.isArray(parsed.comments) && parsed.comments.length > 0) {
+                                    return (
+                                        <div className="rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden">
+                                            <div className="px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+                                                <h3 className="text-sm font-medium text-slate-300">상세 코멘트 ({parsed.comments.length})</h3>
+                                            </div>
+                                            <div className="divide-y divide-white/5">
+                                                {parsed.comments.map((comment: any, idx: number) => (
+                                                    <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <div className="flex items-center space-x-2 font-mono text-xs">
+                                                                <span className="text-blue-400">{comment.file}</span>
+                                                                <span className="text-slate-600">:</span>
+                                                                <span className="text-amber-400">Lines {comment.line}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-[13px] text-slate-300 leading-relaxed">
+                                                            <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{comment.comment}</ReactMarkdown>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                            } catch { }
+                            return null;
+                        })()}
                     </div>
                 ) : (
                     <div className="rounded-xl bg-white/[0.02] border border-white/5 p-12 text-center">
