@@ -11,7 +11,14 @@ const ERROR_MESSAGES: Record<string, string> = {
     WEBHOOK_REGISTRATION_ERROR: '웹훅 등록에 실패했습니다.',
 };
 
-export const getErrorMessage = (error: any): string => {
-    const errorCode = error?.response?.data?.code;
-    return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.RUNTIME_EX;
+import axios from 'axios';
+
+export const getErrorMessage = (error: unknown): string => {
+    let errorCode: string | undefined;
+
+    if (axios.isAxiosError(error)) {
+        errorCode = error.response?.data?.code;
+    }
+
+    return (errorCode && ERROR_MESSAGES[errorCode]) || ERROR_MESSAGES.RUNTIME_EX;
 };

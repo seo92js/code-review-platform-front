@@ -11,13 +11,27 @@ import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/github-dark.css'
 
+interface ReviewComment {
+    file: string;
+    line: number;
+    codeSnippet: string;
+    comment: string;
+    path: string;
+    body: string;
+}
+
+interface ReviewResult {
+    generalReview: string;
+    comments: ReviewComment[];
+}
+
 const ChangedFilesView: React.FC = () => {
     const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
     const navigate = useNavigate();
     const [changedFiles, setChangedFiles] = useState<ChangedFile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [expandedFiles, setExpandedFiles] = useState<Set<number>>(new Set());
-    const [reviewResult, setReviewResult] = useState<any>(null);
+    const [reviewResult, setReviewResult] = useState<string | ReviewResult | null>(null);
     const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
 
     useEffect(() => {
@@ -276,7 +290,7 @@ const ChangedFilesView: React.FC = () => {
                                 {(() => {
                                     try {
                                         const parsed = typeof reviewResult === 'string' ? JSON.parse(reviewResult) : reviewResult;
-                                        return parsed.generalReview || (typeof reviewResult === 'string' ? reviewResult : JSON.stringify(reviewResult));
+                                        return (parsed as ReviewResult).generalReview || (typeof reviewResult === 'string' ? reviewResult : JSON.stringify(reviewResult));
                                     } catch {
                                         return String(reviewResult);
                                     }
@@ -288,30 +302,36 @@ const ChangedFilesView: React.FC = () => {
                         {(() => {
                             try {
                                 const parsed = typeof reviewResult === 'string' ? JSON.parse(reviewResult) : reviewResult;
-                                if (parsed.comments && Array.isArray(parsed.comments) && parsed.comments.length > 0) {
+                                if ((parsed as ReviewResult).comments && Array.isArray((parsed as ReviewResult).comments) && (parsed as ReviewResult).comments.length > 0) {
                                     return (
                                         <div className="rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden">
                                             <div className="px-4 py-3 border-b border-white/5 bg-white/[0.02]">
-                                                <h3 className="text-sm font-medium text-slate-300">상세 코멘트 ({parsed.comments.length})</h3>
+                                                <h3 className="text-sm font-medium text-slate-300">상세 코멘트 ({(parsed as ReviewResult).comments.length})</h3>
                                             </div>
                                             <div className="divide-y divide-white/5">
-                                                {parsed.comments.map((comment: any, idx: number) => (
+                                                {(parsed as ReviewResult).comments.map((comment: ReviewComment, idx: number) => (
                                                     <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors">
                                                         <div className="flex items-center justify-between mb-2">
                                                             <div className="flex items-center space-x-2 font-mono text-xs">
-                                                                <span className="text-blue-400">{comment.file}</span>
+                                                                <span className="text-blue-400">{comment.path || comment.file}</span>
                                                                 <span className="text-slate-600">:</span>
-                                                                {comment.line > 0 ? (
-                                                                    <span className="text-amber-400">Lines {comment.line}</span>
-                                                                ) : (
-                                                                    <span className="text-slate-500 italic bg-white/5 px-1.5 py-0.5 rounded font-mono">
-                                                                        {comment.codeSnippet ? `Ref: ${comment.codeSnippet.trim()}` : "(Context missing)"}
-                                                                    </span>
-                                                                )}
+                                                                <span className="text-amber-400">Line {comment.line}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="text-[13px] text-slate-300 leading-relaxed">
-                                                            <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{comment.comment}</ReactMarkdown>
+
+                                                        {comment.codeSnippet && (
+                                                            <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
+                                                                <div className="px-3 py-1.5 bg-white/5 border-b border-white/5 text-[11px] text-slate-500 font-mono">
+                                                                    Context
+                                                                </div>
+                                                                <div className="p-3 text-[12px] font-mono text-slate-300 overflow-x-auto whitespace-pre">
+                                                                    {comment.codeSnippet}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="text-[13px] text-slate-300 leading-relaxed pl-1">
+                                                            <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{comment.body || comment.comment}</ReactMarkdown>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -319,7 +339,9 @@ const ChangedFilesView: React.FC = () => {
                                         </div>
                                     );
                                 }
-                            } catch { }
+                            } catch {
+                                // ignore
+                            }
                             return null;
                         })()}
                     </div>
