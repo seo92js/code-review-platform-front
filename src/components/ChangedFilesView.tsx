@@ -128,7 +128,7 @@ const ChangedFilesView: React.FC = () => {
             }
 
             if (line.startsWith(' ') || line.startsWith('+')) {
-                if (currentNewLine === targetLine) {
+                if (currentNewLine == targetLine) {
                     foundIndex = i;
                     break;
                 }
@@ -340,7 +340,11 @@ const ChangedFilesView: React.FC = () => {
                                             <div className="divide-y divide-white/5">
                                                 {(parsed as ReviewResult).comments.map((comment: ReviewComment, idx: number) => {
                                                     const targetFile = changedFiles.find(f => f.filename === (comment.path || comment.file));
+                                                    console.log('DBG: Processing comment:', comment.path, comment.line);
+                                                    console.log('DBG: Target File:', targetFile?.filename, 'HasPatch:', !!targetFile?.patch);
+
                                                     const diffContext = targetFile?.patch ? extractDiffContext(targetFile.patch, comment.line) : null;
+                                                    console.log('DBG: DiffContext result:', diffContext);
 
                                                     return (
                                                         <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors">
