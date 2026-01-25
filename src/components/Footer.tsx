@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 
 const Footer: React.FC = () => {
     const email = 'seo92js@gmail.com';
@@ -10,8 +11,8 @@ const Footer: React.FC = () => {
             await navigator.clipboard.writeText(email);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy:', err);
+        } catch {
+            toast.error('이메일 복사에 실패했습니다.');
         }
     };
 

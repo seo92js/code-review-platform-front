@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getNotifications, markAllAsRead, markAsRead, Notification } from '../api/notification';
 import { getErrorMessage } from '../utils/errorMessages';
+import { toast } from 'react-toastify';
 
 const NotificationDropdown: React.FC = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -16,8 +17,8 @@ const NotificationDropdown: React.FC = () => {
             const data = await getNotifications();
             setNotifications(data);
             setHasUnread(data.some(n => !n.isRead));
-        } catch (error) {
-            console.error('Failed to fetch notifications:', error);
+        } catch {
+            // Silent catch
         }
     };
 
@@ -53,7 +54,7 @@ const NotificationDropdown: React.FC = () => {
             setHasUnread(false);
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
         } catch (error) {
-            console.error(getErrorMessage(error));
+            toast.error(getErrorMessage(error));
         }
     };
 
@@ -68,8 +69,8 @@ const NotificationDropdown: React.FC = () => {
                 ));
                 const stillHasUnread = notifications.some(n => n.id !== notification.id && !n.isRead);
                 setHasUnread(stillHasUnread);
-            } catch (error) {
-                console.error('Failed to mark notification as read:', error);
+            } catch {
+                // Silent catch for background fetch
             }
         }
 
