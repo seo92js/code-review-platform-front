@@ -315,16 +315,22 @@ const ChangedFilesView: React.FC = () => {
                                                             <div className="flex items-center space-x-2 font-mono text-xs">
                                                                 <span className="text-blue-400">{comment.path || comment.file}</span>
                                                                 <span className="text-slate-600">:</span>
-                                                                {comment.line > 0 ? (
-                                                                    <span className="text-amber-400">Lines {comment.line}</span>
-                                                                ) : (
-                                                                    <span className="text-slate-500 italic bg-white/5 px-1.5 py-0.5 rounded font-mono">
-                                                                        {comment.codeSnippet ? `Ref: ${comment.codeSnippet.trim()}` : "(Context missing)"}
-                                                                    </span>
-                                                                )}
+                                                                <span className="text-amber-400">Line {comment.line}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="text-[13px] text-slate-300 leading-relaxed">
+
+                                                        {comment.codeSnippet && (
+                                                            <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
+                                                                <div className="px-3 py-1.5 bg-white/5 border-b border-white/5 text-[11px] text-slate-500 font-mono">
+                                                                    Context
+                                                                </div>
+                                                                <div className="p-3 text-[12px] font-mono text-slate-300 overflow-x-auto whitespace-pre">
+                                                                    {comment.codeSnippet}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="text-[13px] text-slate-300 leading-relaxed pl-1">
                                                             <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{comment.body || comment.comment}</ReactMarkdown>
                                                         </div>
                                                     </div>
