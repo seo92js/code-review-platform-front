@@ -25,6 +25,54 @@ interface ReviewResult {
     comments: ReviewComment[];
 }
 
+const parseReviewResult = (resultStr: string | ReviewResult | null): ReviewResult | string | null => {
+    if (!resultStr) return null;
+    if (typeof resultStr !== 'string') return resultStr;
+
+    let cleanStr = resultStr.trim();
+
+    if (cleanStr.startsWith('```json')) {
+        cleanStr = cleanStr.substring(7);
+    } else if (cleanStr.startsWith('```')) {
+        cleanStr = cleanStr.substring(3);
+    }
+    if (cleanStr.endsWith('```')) {
+        cleanStr = cleanStr.substring(0, cleanStr.length - 3);
+    }
+    cleanStr = cleanStr.trim();
+
+    try {
+        return JSON.parse(cleanStr);
+    } catch (e1) {
+        try {
+            // JSON 문자열 내부의 실제 개행을 이스케이프된 \n으로 치환
+            const escaped = cleanStr
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r')
+                .replace(/\t/g, '\\t');
+            return JSON.parse(escaped);
+        } catch (e2) {
+            // 텍스트 내에서 중괄호 {} 사이의 JSON 부분을 추출
+            const startIdx = cleanStr.indexOf('{');
+            const endIdx = cleanStr.lastIndexOf('}');
+            if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+                try {
+                    const jsonPart = cleanStr.substring(startIdx, endIdx + 1);
+                    const escapedJsonPart = jsonPart
+                        .replace(/\n/g, '\\n')
+                        .replace(/\r/g, '\\r')
+                        .replace(/\t/g, '\\t');
+                    return JSON.parse(escapedJsonPart);
+                } catch (e3) {
+                    console.error("Failed to parse extracted JSON part:", e3);
+                }
+            }
+            console.error("Failed to parse AI review result entirely:", e2);
+            return cleanStr;
+        }
+    }
+};
+
 const ChangedFilesView: React.FC = () => {
     const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
     const navigate = useNavigate();
@@ -66,7 +114,7 @@ const ChangedFilesView: React.FC = () => {
 
             try {
                 const review = await getReview(owner, repo, parseInt(prNumber));
-                setReviewResult(review);
+                setReviewResult(parseReviewResult(review));
             } catch (error) {
                 toast.error(getErrorMessage(error));
                 setReviewResult(null);
@@ -319,95 +367,75 @@ const ChangedFilesView: React.FC = () => {
                         {/* General Review */}
                         <div className="markdown-body text-left rounded-xl bg-white/[0.02] border border-white/5 p-6 text-[13px]">
                             <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-                                {(() => {
-                                    try {
-                                        const parsed = typeof reviewResult === 'string' ? JSON.parse(reviewResult) : reviewResult;
-                                        return (parsed as ReviewResult).generalReview || (typeof reviewResult === 'string' ? reviewResult : JSON.stringify(reviewResult));
-                                    } catch {
-                                        return String(reviewResult);
-                                    }
-                                })()}
+                                {typeof reviewResult === 'string' ? reviewResult : reviewResult.generalReview}
                             </ReactMarkdown>
                         </div>
 
                         {/* Inline Comments List */}
-                        {(() => {
-                            try {
-                                const parsed = typeof reviewResult === 'string' ? JSON.parse(reviewResult) : reviewResult;
-                                if ((parsed as ReviewResult).comments && Array.isArray((parsed as ReviewResult).comments) && (parsed as ReviewResult).comments.length > 0) {
-                                    return (
-                                        <div className="rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden">
-                                            <div className="divide-y divide-white/5">
-                                                {(parsed as ReviewResult).comments.map((comment: ReviewComment, idx: number) => {
-                                                    const targetFile = changedFiles.find(f => f.filename === (comment.path || comment.file));
-                                                    console.log('DBG: Processing comment:', comment.path, comment.line);
-                                                    console.log('DBG: Target File:', targetFile?.filename, 'HasPatch:', !!targetFile?.patch);
+                        {typeof reviewResult !== 'string' && reviewResult.comments && reviewResult.comments.length > 0 && (
+                            <div className="rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden">
+                                <div className="divide-y divide-white/5">
+                                    {reviewResult.comments.map((comment: ReviewComment, idx: number) => {
+                                        const targetFile = changedFiles.find(f => f.filename === (comment.path || comment.file));
 
-                                                    const diffContext = targetFile?.patch ? extractDiffContext(targetFile.patch, comment.line) : null;
-                                                    console.log('DBG: DiffContext result:', diffContext);
+                                        const diffContext = targetFile?.patch ? extractDiffContext(targetFile.patch, comment.line) : null;
 
-                                                    return (
-                                                        <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors">
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <div className="flex items-center space-x-2 font-mono text-xs">
-                                                                    <span className="text-blue-400">{comment.path || comment.file}</span>
-                                                                </div>
-                                                            </div>
+                                        return (
+                                            <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center space-x-2 font-mono text-xs">
+                                                        <span className="text-blue-400">{comment.path || comment.file}</span>
+                                                    </div>
+                                                </div>
 
-                                                            {/* Diff Context display */}
-                                                            {diffContext ? (
-                                                                <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
-                                                                    <div className="overflow-x-auto">
-                                                                        {diffContext.map((line, i) => {
-                                                                            const isAdded = line.startsWith('+');
-                                                                            const isDeleted = line.startsWith('-');
-                                                                            const isHeader = line.startsWith('@@');
+                                                {/* Diff Context display */}
+                                                {diffContext ? (
+                                                    <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
+                                                        <div className="overflow-x-auto">
+                                                            {diffContext.map((line, i) => {
+                                                                const isAdded = line.startsWith('+');
+                                                                const isDeleted = line.startsWith('-');
+                                                                const isHeader = line.startsWith('@@');
 
-                                                                            let bgColor = 'bg-transparent';
-                                                                            let textColor = 'text-slate-400';
+                                                                let bgColor = 'bg-transparent';
+                                                                let textColor = 'text-slate-400';
 
-                                                                            if (isAdded) {
-                                                                                bgColor = 'bg-emerald-500/10';
-                                                                                textColor = 'text-emerald-400';
-                                                                            } else if (isDeleted) {
-                                                                                bgColor = 'bg-rose-500/10';
-                                                                                textColor = 'text-rose-400';
-                                                                            } else if (isHeader) {
-                                                                                bgColor = 'bg-blue-500/10';
-                                                                                textColor = 'text-blue-400';
-                                                                            }
+                                                                if (isAdded) {
+                                                                    bgColor = 'bg-emerald-500/10';
+                                                                    textColor = 'text-emerald-400';
+                                                                } else if (isDeleted) {
+                                                                    bgColor = 'bg-rose-500/10';
+                                                                    textColor = 'text-rose-400';
+                                                                } else if (isHeader) {
+                                                                    bgColor = 'bg-blue-500/10';
+                                                                    textColor = 'text-blue-400';
+                                                                }
 
-                                                                            return (
-                                                                                <div key={i} className={`${bgColor} px-3 py-0.5 text-[11px] font-mono leading-relaxed text-left whitespace-pre`}>
-                                                                                    <span className={`${textColor}`}>{line}</span>
-                                                                                </div>
-                                                                            );
-                                                                        })}
+                                                                return (
+                                                                    <div key={i} className={`${bgColor} px-3 py-0.5 text-[11px] font-mono leading-relaxed text-left whitespace-pre`}>
+                                                                        <span className={`${textColor}`}>{line}</span>
                                                                     </div>
-                                                                </div>
-                                                            ) : comment.codeSnippet && (
-                                                                <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
-                                                                    <div className="p-3 text-[12px] font-mono text-slate-300 overflow-x-auto whitespace-pre">
-                                                                        {comment.codeSnippet}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            <div className="text-[13px] text-slate-300 leading-relaxed pl-1">
-                                                                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{comment.body || comment.comment}</ReactMarkdown>
-                                                            </div>
+                                                                );
+                                                            })}
                                                         </div>
-                                                    )
-                                                })}
+                                                    </div>
+                                                ) : comment.codeSnippet && (
+                                                    <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
+                                                        <div className="p-3 text-[12px] font-mono text-slate-300 overflow-x-auto whitespace-pre">
+                                                            {comment.codeSnippet}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="text-[13px] text-slate-300 leading-relaxed pl-1">
+                                                    <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{comment.body || comment.comment}</ReactMarkdown>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                }
-                            } catch {
-                                // ignore
-                            }
-                            return null;
-                        })()}
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="rounded-xl bg-white/[0.02] border border-white/5 p-12 text-center">
