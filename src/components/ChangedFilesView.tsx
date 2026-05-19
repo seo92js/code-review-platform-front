@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPullRequestWithChanges, getPullRequests } from '../api/pull-request';
 import LoadingSpinner from './LoadingSpinner';
-import type { ChangedFile, PullRequest } from '../types/pullRequest';
+import type { AiReviewResult, ChangedFile, PullRequest, ReviewComment } from '../types/pullRequest';
 import { requestReview, getReview } from '../api/pull-request';
 import { getReviewSettings } from '../api/github';
 import { getErrorMessage } from '../utils/errorMessages';
@@ -11,27 +11,13 @@ import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/github-dark.css'
 
-interface ReviewComment {
-    file: string;
-    line: number;
-    codeSnippet: string;
-    comment: string;
-    path: string;
-    body: string;
-}
-
-interface ReviewResult {
-    generalReview: string;
-    comments: ReviewComment[];
-}
-
 const ChangedFilesView: React.FC = () => {
     const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
     const navigate = useNavigate();
     const [changedFiles, setChangedFiles] = useState<ChangedFile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [expandedFiles, setExpandedFiles] = useState<Set<number>>(new Set());
-    const [reviewResult, setReviewResult] = useState<string | ReviewResult | null>(null);
+    const [reviewResult, setReviewResult] = useState<string | AiReviewResult | null>(null);
     const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
     const [pullRequest, setPullRequest] = useState<PullRequest | null>(null);
 
@@ -165,6 +151,31 @@ const ChangedFilesView: React.FC = () => {
         }
         return null;
     };
+
+    const parseReviewResult = (value: string | AiReviewResult | null): AiReviewResult | null => {
+        if (!value) return null;
+        const parsed = typeof value === 'string' ? (() => {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return null;
+            }
+        })() : value;
+
+        if (!parsed || typeof parsed !== 'object') {
+            return null;
+        }
+
+        return {
+            generalReview: typeof parsed.generalReview === 'string' ? parsed.generalReview : String(value),
+            comments: Array.isArray(parsed.comments) ? parsed.comments : []
+        };
+    };
+
+    const getCommentPath = (comment: ReviewComment) => comment.path || comment.file || '';
+    const getCommentBody = (comment: ReviewComment) => comment.body || comment.comment || '';
+    const parsedReviewResult = parseReviewResult(reviewResult);
+    const generalReviewText = parsedReviewResult?.generalReview || (reviewResult ? String(reviewResult) : '');
 
     return (
         <div className="max-w-7xl mx-auto px-6 py-8">
@@ -350,95 +361,81 @@ const ChangedFilesView: React.FC = () => {
                         {/* General Review */}
                         <div className="markdown-body text-left rounded-xl bg-white/[0.02] border border-white/5 p-6 text-[13px]">
                             <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-                                {(() => {
-                                    try {
-                                        const parsed = typeof reviewResult === 'string' ? JSON.parse(reviewResult) : reviewResult;
-                                        return (parsed as ReviewResult).generalReview || (typeof reviewResult === 'string' ? reviewResult : JSON.stringify(reviewResult));
-                                    } catch {
-                                        return String(reviewResult);
-                                    }
-                                })()}
+                                {generalReviewText}
                             </ReactMarkdown>
                         </div>
 
                         {/* Inline Comments List */}
-                        {(() => {
-                            try {
-                                const parsed = typeof reviewResult === 'string' ? JSON.parse(reviewResult) : reviewResult;
-                                if ((parsed as ReviewResult).comments && Array.isArray((parsed as ReviewResult).comments) && (parsed as ReviewResult).comments.length > 0) {
-                                    return (
-                                        <div className="rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden">
-                                            <div className="divide-y divide-white/5">
-                                                {(parsed as ReviewResult).comments.map((comment: ReviewComment, idx: number) => {
-                                                    const targetFile = changedFiles.find(f => f.filename === (comment.path || comment.file));
-                                                    console.log('DBG: Processing comment:', comment.path, comment.line);
-                                                    console.log('DBG: Target File:', targetFile?.filename, 'HasPatch:', !!targetFile?.patch);
+                        {parsedReviewResult?.comments && parsedReviewResult.comments.length > 0 && (
+                            <div className="rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden">
+                                <div className="divide-y divide-white/5">
+                                    {parsedReviewResult.comments.map((comment: ReviewComment, idx: number) => {
+                                        const commentPath = getCommentPath(comment);
+                                        const commentBody = getCommentBody(comment);
+                                        const targetFile = changedFiles.find(f => f.filename === commentPath);
+                                        const diffContext = targetFile?.patch && comment.line ? extractDiffContext(targetFile.patch, comment.line) : null;
+                                        const isFallbackComment = !comment.line || !diffContext;
 
-                                                    const diffContext = targetFile?.patch ? extractDiffContext(targetFile.patch, comment.line) : null;
-                                                    console.log('DBG: DiffContext result:', diffContext);
+                                        return (
+                                            <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center space-x-2 font-mono text-xs">
+                                                        <span className="text-blue-400">{commentPath}</span>
+                                                        {isFallbackComment && (
+                                                            <span className="px-1.5 py-0.5 rounded border border-amber-500/20 bg-amber-500/10 text-[10px] font-medium text-amber-300">
+                                                                일반 코멘트
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
 
-                                                    return (
-                                                        <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors">
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <div className="flex items-center space-x-2 font-mono text-xs">
-                                                                    <span className="text-blue-400">{comment.path || comment.file}</span>
-                                                                </div>
-                                                            </div>
+                                                {diffContext ? (
+                                                    <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
+                                                        <div className="overflow-x-auto">
+                                                            {diffContext.map((line, i) => {
+                                                                const isAdded = line.startsWith('+');
+                                                                const isDeleted = line.startsWith('-');
+                                                                const isHeader = line.startsWith('@@');
 
-                                                            {/* Diff Context display */}
-                                                            {diffContext ? (
-                                                                <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
-                                                                    <div className="overflow-x-auto">
-                                                                        {diffContext.map((line, i) => {
-                                                                            const isAdded = line.startsWith('+');
-                                                                            const isDeleted = line.startsWith('-');
-                                                                            const isHeader = line.startsWith('@@');
+                                                                let bgColor = 'bg-transparent';
+                                                                let textColor = 'text-slate-400';
 
-                                                                            let bgColor = 'bg-transparent';
-                                                                            let textColor = 'text-slate-400';
+                                                                if (isAdded) {
+                                                                    bgColor = 'bg-emerald-500/10';
+                                                                    textColor = 'text-emerald-400';
+                                                                } else if (isDeleted) {
+                                                                    bgColor = 'bg-rose-500/10';
+                                                                    textColor = 'text-rose-400';
+                                                                } else if (isHeader) {
+                                                                    bgColor = 'bg-blue-500/10';
+                                                                    textColor = 'text-blue-400';
+                                                                }
 
-                                                                            if (isAdded) {
-                                                                                bgColor = 'bg-emerald-500/10';
-                                                                                textColor = 'text-emerald-400';
-                                                                            } else if (isDeleted) {
-                                                                                bgColor = 'bg-rose-500/10';
-                                                                                textColor = 'text-rose-400';
-                                                                            } else if (isHeader) {
-                                                                                bgColor = 'bg-blue-500/10';
-                                                                                textColor = 'text-blue-400';
-                                                                            }
-
-                                                                            return (
-                                                                                <div key={i} className={`${bgColor} px-3 py-0.5 text-[11px] font-mono leading-relaxed text-left whitespace-pre`}>
-                                                                                    <span className={`${textColor}`}>{line}</span>
-                                                                                </div>
-                                                                            );
-                                                                        })}
+                                                                return (
+                                                                    <div key={i} className={`${bgColor} px-3 py-0.5 text-[11px] font-mono leading-relaxed text-left whitespace-pre`}>
+                                                                        <span className={`${textColor}`}>{line}</span>
                                                                     </div>
-                                                                </div>
-                                                            ) : comment.codeSnippet && (
-                                                                <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
-                                                                    <div className="p-3 text-[12px] font-mono text-slate-300 overflow-x-auto whitespace-pre">
-                                                                        {comment.codeSnippet}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            <div className="text-[13px] text-slate-300 leading-relaxed pl-1">
-                                                                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{comment.body || comment.comment}</ReactMarkdown>
-                                                            </div>
+                                                                );
+                                                            })}
                                                         </div>
-                                                    )
-                                                })}
+                                                    </div>
+                                                ) : comment.codeSnippet && (
+                                                    <div className="mb-3 bg-[#0d1117] rounded-md border border-white/10 overflow-hidden">
+                                                        <div className="p-3 text-[12px] font-mono text-slate-300 overflow-x-auto whitespace-pre">
+                                                            {comment.codeSnippet}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="text-[13px] text-slate-300 leading-relaxed pl-1">
+                                                    <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{commentBody}</ReactMarkdown>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                }
-                            } catch {
-                                // ignore
-                            }
-                            return null;
-                        })()}
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="rounded-xl bg-white/[0.02] border border-white/5 p-12 text-center">
