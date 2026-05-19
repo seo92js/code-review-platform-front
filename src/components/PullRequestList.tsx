@@ -84,6 +84,14 @@ const PullRequestList: React.FC = () => {
                     icon: null,
                     label: '새 변경사항'
                 };
+            case 'STALE':
+                return {
+                    bg: 'bg-orange-500/10',
+                    text: 'text-orange-400',
+                    border: 'border-orange-500/20',
+                    icon: null,
+                    label: '오래된 리뷰'
+                };
             default:
                 return {
                     bg: 'bg-slate-500/10',
@@ -92,6 +100,17 @@ const PullRequestList: React.FC = () => {
                     icon: null,
                     label: status
                 };
+        }
+    };
+
+    const getPrStateConfig = (state?: string) => {
+        switch (state) {
+            case 'MERGED':
+                return '병합됨';
+            case 'CLOSED':
+                return '닫힘';
+            default:
+                return null;
         }
     };
 
@@ -144,6 +163,7 @@ const PullRequestList: React.FC = () => {
                 <div className="space-y-3">
                     {pullRequests.map((pr) => {
                         const statusConfig = getStatusConfig(pr.status);
+                        const prStateLabel = getPrStateConfig(pr.prState);
                         return (
                             <div
                                 key={pr.prNumber}
@@ -165,6 +185,11 @@ const PullRequestList: React.FC = () => {
                                                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
                                                     {pr.action}
                                                 </span>
+                                                {prStateLabel && (
+                                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-slate-500/10 text-slate-300 border border-slate-500/20">
+                                                        {prStateLabel}
+                                                    </span>
+                                                )}
                                             </div>
 
                                             {/* Title */}

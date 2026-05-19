@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getPullRequestWithChanges } from '../api/pull-request';
+import { getPullRequestWithChanges, getPullRequests } from '../api/pull-request';
 import LoadingSpinner from './LoadingSpinner';
-import type { ChangedFile } from '../types/pullRequest';
+import type { ChangedFile, PullRequest } from '../types/pullRequest';
 import { requestReview, getReview } from '../api/pull-request';
 import { getReviewSettings } from '../api/github';
 import { getErrorMessage } from '../utils/errorMessages';
@@ -33,6 +33,7 @@ const ChangedFilesView: React.FC = () => {
     const [expandedFiles, setExpandedFiles] = useState<Set<number>>(new Set());
     const [reviewResult, setReviewResult] = useState<string | ReviewResult | null>(null);
     const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
+    const [pullRequest, setPullRequest] = useState<PullRequest | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -44,12 +45,14 @@ const ChangedFilesView: React.FC = () => {
 
             try {
                 setIsLoading(true);
-                const [changes, settings] = await Promise.all([
+                const [changes, settings, pullRequests] = await Promise.all([
                     getPullRequestWithChanges(owner, repo, parseInt(prNumber)),
-                    getReviewSettings()
+                    getReviewSettings(),
+                    getPullRequests(owner, repo)
                 ]);
                 setChangedFiles(changes);
                 setSelectedModel(settings.openaiModel || 'gpt-4o-mini');
+                setPullRequest((pullRequests as PullRequest[]).find(pr => pr.prNumber === parseInt(prNumber)) || null);
             } catch (error) {
                 toast.error(getErrorMessage(error));
             } finally {
@@ -93,6 +96,25 @@ const ChangedFilesView: React.FC = () => {
 
     const handleBackToPRList = () => {
         navigate(`/repos/${owner}/${repo}`);
+    };
+
+    const getReviewStatusLabel = (status?: string) => {
+        switch (status) {
+            case 'COMPLETED':
+                return '리뷰 완료';
+            case 'IN_PROGRESS':
+                return '리뷰 진행 중';
+            case 'PENDING':
+                return '리뷰 대기 중';
+            case 'FAILED':
+                return '리뷰 실패';
+            case 'NEW_CHANGES':
+                return '새 변경사항';
+            case 'STALE':
+                return '오래된 리뷰';
+            default:
+                return status || '상태 없음';
+        }
     };
 
     const toggleFileExpanded = (index: number) => {
@@ -171,6 +193,11 @@ const ChangedFilesView: React.FC = () => {
                     </div>
 
                     <div className="flex items-center space-x-3">
+                        {pullRequest && (
+                            <span className="px-3 py-2 text-[12px] font-medium text-slate-300 bg-white/5 border border-white/10 rounded-lg">
+                                {getReviewStatusLabel(pullRequest.status)}
+                            </span>
+                        )}
                         <span className="px-3 py-2 text-[12px] font-medium text-slate-400 bg-white/5 border border-white/10 rounded-lg">
                             {selectedModel}
                         </span>
@@ -185,12 +212,16 @@ const ChangedFilesView: React.FC = () => {
                                     toast.error(getErrorMessage(error));
                                 }
                             }}
-                            className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-[13px] text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-sm shadow-blue-500/20"
+                            disabled={pullRequest?.status === 'IN_PROGRESS'}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-[13px] text-white transition-colors shadow-sm shadow-blue-500/20 ${pullRequest?.status === 'IN_PROGRESS'
+                                ? 'bg-slate-700 cursor-not-allowed opacity-60'
+                                : 'bg-blue-600 hover:bg-blue-500'
+                                }`}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span>리뷰 요청</span>
+                            <span>{pullRequest?.status === 'IN_PROGRESS' ? '리뷰 진행 중' : '리뷰 요청'}</span>
                         </button>
                     </div>
                 </div>
