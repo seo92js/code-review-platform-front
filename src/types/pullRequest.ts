@@ -26,10 +26,12 @@ export interface ChangedFile {
 }
 
 export interface ReviewComment {
-    file: string;
-    line: number;
+    path?: string;
+    file?: string;
+    line?: number | null;
     codeSnippet?: string;
-    comment: string;
+    body?: string;
+    comment?: string;
 }
 
 export interface AiReviewResult {
