@@ -3,6 +3,10 @@ export interface PullRequest {
     title: string;
     action: string;
     status: string;
+    prState?: 'OPEN' | 'CLOSED' | 'MERGED';
+    headSha?: string;
+    reviewStartedHeadSha?: string;
+    reviewCompletedHeadSha?: string;
     createdAt: string;
     updatedAt: string;
 }
