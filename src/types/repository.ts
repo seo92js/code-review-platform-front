@@ -5,6 +5,13 @@ export interface Repository {
     description: string;
     html_url: string;
     owner: string;
+    permissions?: {
+        admin?: boolean;
+        maintain?: boolean;
+        push?: boolean;
+        pull?: boolean;
+        triage?: boolean;
+    };
 }
 
 export interface RepositoryResponse {

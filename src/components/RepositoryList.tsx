@@ -84,6 +84,8 @@ const RepositoryList: React.FC = () => {
     };
 
     const RepositoryCard = ({ repo, isSkeleton = false }: { repo?: RepositoryResponse; isSkeleton?: boolean }) => {
+        const canManageRepository = repo?.repository.permissions?.admin === true;
+
         return (
             <div
                 className={`group relative rounded-xl overflow-hidden transition-all duration-300 border h-[160px] flex flex-col ${isSkeleton
@@ -140,7 +142,7 @@ const RepositoryList: React.FC = () => {
                     <div className="flex items-center justify-between pt-3 mt-auto border-t border-white/5">
                         {isSkeleton ? (
                             <div className="h-5 bg-white/5 rounded w-24"></div>
-                        ) : (
+                        ) : canManageRepository ? (
                             <>
                                 <div>
                                     {repo!.hasWebhook ? (
@@ -180,6 +182,8 @@ const RepositoryList: React.FC = () => {
                                     </svg>
                                 </button>
                             </>
+                        ) : (
+                            <div className="h-7" />
                         )}
                     </div>
                 </div>
