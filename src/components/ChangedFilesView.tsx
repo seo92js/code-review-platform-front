@@ -33,7 +33,7 @@ const ChangedFilesView: React.FC = () => {
                 setIsLoading(true);
                 const [changes, settings, pullRequests] = await Promise.all([
                     getPullRequestWithChanges(owner, repo, parseInt(prNumber)),
-                    getReviewSettings(),
+                    getReviewSettings(owner, repo),
                     getPullRequests(owner, repo)
                 ]);
                 setChangedFiles(changes);

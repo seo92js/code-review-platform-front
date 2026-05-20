@@ -48,31 +48,9 @@ export const getUsername = async () => {
 /**
  * 웹훅 연결 API
  */
-export const registerWebhook = async (repository: string) => {
+export const registerWebhook = async (owner: string, repository: string) => {
     const response = await axios.post('/api/github/register', null, {
-        params: { repository },
-        withCredentials: true
-    });
-
-    return response.data;
-}
-
-/**
- * 리뷰 요청 API
- */
-export const requestReview = async (repository: string, prNumber: number) => {
-    await axios.post('/api/pull-request/review', null, {
-        params: { repository, prNumber },
-        withCredentials: true
-    });
-}
-
-/**
- * 리뷰 결과 조회 API
- */
-export const getReview = async (repository: string, prNumber: number) => {
-    const response = await axios.get('/api/pull-request/review', {
-        params: { repository, prNumber },
+        params: { owner, repository },
         withCredentials: true
     });
 
@@ -97,8 +75,9 @@ export interface ReviewSettings {
 /**
  * 리뷰 설정 조회
  */
-export const getReviewSettings = async (): Promise<ReviewSettings> => {
+export const getReviewSettings = async (owner: string, repository: string): Promise<ReviewSettings> => {
     const response = await axios.get('/api/github/review-settings', {
+        params: { owner, repository },
         withCredentials: true
     });
     return response.data;
@@ -107,8 +86,9 @@ export const getReviewSettings = async (): Promise<ReviewSettings> => {
 /**
  * 리뷰 설정 업데이트
  */
-export const updateReviewSettings = async (settings: ReviewSettings): Promise<number> => {
+export const updateReviewSettings = async (owner: string, repository: string, settings: ReviewSettings): Promise<number> => {
     const response = await axios.patch('/api/github/review-settings', settings, {
+        params: { owner, repository },
         withCredentials: true
     });
     return response.data;
@@ -117,8 +97,9 @@ export const updateReviewSettings = async (settings: ReviewSettings): Promise<nu
 /**
  * Ignore 패턴 조회
  */
-export const getIgnorePatterns = async () => {
+export const getIgnorePatterns = async (owner: string, repository: string) => {
     const response = await axios.get('/api/github/ignore', {
+        params: { owner, repository },
         withCredentials: true
     });
     return response.data;
@@ -127,8 +108,9 @@ export const getIgnorePatterns = async () => {
 /**
  * Ignore 패턴 업데이트
  */
-export const updateIgnorePatterns = async (patterns: string[]) => {
+export const updateIgnorePatterns = async (owner: string, repository: string, patterns: string[]) => {
     const response = await axios.patch('/api/github/ignore', patterns, {
+        params: { owner, repository },
         withCredentials: true
     });
     return response.data;
@@ -137,8 +119,9 @@ export const updateIgnorePatterns = async (patterns: string[]) => {
 /**
  * OpenAI 키 조회
  */
-export const getOpenAiKey = async () => {
+export const getOpenAiKey = async (owner: string, repository: string) => {
     const response = await axios.get('/api/github/openai', {
+        params: { owner, repository },
         withCredentials: true
     });
     return response.data;
@@ -147,8 +130,9 @@ export const getOpenAiKey = async () => {
 /**
  * OpenAI 키 업데이트
  */
-export const updateOpenAiKey = async (key: string) => {
+export const updateOpenAiKey = async (owner: string, repository: string, key: string) => {
     const response = await axios.patch('/api/github/openai', { key }, {
+        params: { owner, repository },
         withCredentials: true
     });
     return response.data;

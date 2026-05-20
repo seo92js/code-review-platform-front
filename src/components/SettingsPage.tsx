@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
     getReviewSettings, updateReviewSettings,
@@ -36,6 +36,9 @@ const detailOptions: OptionButton<DetailLevel>[] = [
 
 const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const owner = searchParams.get('owner') || '';
+    const repository = searchParams.get('repository') || '';
 
     // AI Review Settings
     const [tone, setTone] = useState<ReviewTone>('NEUTRAL');
@@ -60,16 +63,20 @@ const SettingsPage: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        loadAllSettings();
-    }, []);
+        if (owner && repository) {
+            loadAllSettings();
+        } else {
+            setIsLoading(false);
+        }
+    }, [owner, repository]);
 
     const loadAllSettings = async () => {
         setIsLoading(true);
         try {
             const [reviewSettings, ignorePatterns, openAiKey] = await Promise.all([
-                getReviewSettings(),
-                getIgnorePatterns(),
-                getOpenAiKey(),
+                getReviewSettings(owner, repository),
+                getIgnorePatterns(owner, repository),
+                getOpenAiKey(owner, repository),
             ]);
 
             setTone(reviewSettings.tone);
@@ -120,13 +127,13 @@ const SettingsPage: React.FC = () => {
             };
 
             await Promise.all([
-                updateReviewSettings(reviewSettingsPayload),
-                updateIgnorePatterns(patterns),
-                !apiKey.includes('****') ? updateOpenAiKey(apiKey) : Promise.resolve(),
+                updateReviewSettings(owner, repository, reviewSettingsPayload),
+                updateIgnorePatterns(owner, repository, patterns),
+                !apiKey.includes('****') ? updateOpenAiKey(owner, repository, apiKey) : Promise.resolve(),
             ]);
 
             toast.success('설정이 저장되었습니다.');
-            navigate('/');
+            navigate(`/repos/${owner}/${repository}`);
         } catch (error) {
             toast.error(getErrorMessage(error));
         } finally {
@@ -188,19 +195,43 @@ const SettingsPage: React.FC = () => {
         );
     }
 
+    if (!owner || !repository) {
+        return (
+            <div className="max-w-2xl mx-auto px-6 py-8">
+                <div className="flex items-center space-x-4 mb-8">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <h1 className="text-xl font-semibold text-white">Repository Settings</h1>
+                </div>
+                <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5 text-center">
+                    <p className="text-[13px] text-slate-400">저장소 설정은 저장소 카드에서 열어주세요.</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-2xl mx-auto px-6 py-8">
             {/* Header */}
             <div className="flex items-center space-x-4 mb-8">
                 <button
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate(`/repos/${owner}/${repository}`)}
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-all"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <h1 className="text-xl font-semibold text-white">Settings</h1>
+                <div>
+                    <h1 className="text-xl font-semibold text-white">Repository Settings</h1>
+                    <p className="text-[12px] text-slate-500">{owner} / {repository}</p>
+                </div>
             </div>
 
             <div className="space-y-8">
@@ -220,7 +251,7 @@ const SettingsPage: React.FC = () => {
 
                         {/* Rule */}
                         <div className="pt-2">
-                            <RuleManagement />
+                            <RuleManagement owner={owner} repository={repository} />
                         </div>
 
 

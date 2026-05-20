@@ -67,10 +67,10 @@ const RepositoryList: React.FC = () => {
         }
     };
 
-    const handleWebhookConnect = async (repositoryName: string, e: React.MouseEvent) => {
+    const handleWebhookConnect = async (owner: string, repositoryName: string, e: React.MouseEvent) => {
         e.stopPropagation();
         try {
-            await registerWebhook(repositoryName);
+            await registerWebhook(owner, repositoryName);
             toast.success('웹훅이 성공적으로 연결되었습니다!');
             // 저장소 목록만 갱신 (전체 리로드 방지)
             fetchRepositories();
@@ -137,33 +137,48 @@ const RepositoryList: React.FC = () => {
                     </div>
 
                     {/* Bottom row: webhook status */}
-                    <div className="flex items-center pt-3 mt-auto border-t border-white/5">
+                    <div className="flex items-center justify-between pt-3 mt-auto border-t border-white/5">
                         {isSkeleton ? (
                             <div className="h-5 bg-white/5 rounded w-24"></div>
                         ) : (
                             <>
-                                {repo!.hasWebhook ? (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (window.confirm('이미 연결된 웹훅입니다. 설정을 갱신하시겠습니까?\n(DB 초기화 등으로 시크릿이 변경된 경우 갱신이 필요합니다.)')) {
-                                                handleWebhookConnect(repo!.repository.name, e);
-                                            }
-                                        }}
-                                        className="text-[10px] font-medium px-2 py-1 text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-md flex items-center hover:bg-emerald-500/10 transition-all cursor-pointer"
-                                        title="클릭하여 웹훅 설정 갱신"
-                                    >
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
-                                        Webhook Connected
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={(e) => handleWebhookConnect(repo!.repository.name, e)}
-                                        className="text-[10px] font-medium px-2 py-1 rounded-md text-blue-400 bg-blue-500/15 border border-blue-500/20 hover:bg-blue-500/25 hover:border-blue-500/30 transition-all duration-200"
-                                    >
-                                        + Webhook Connect
-                                    </button>
-                                )}
+                                <div>
+                                    {repo!.hasWebhook ? (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (window.confirm('이미 연결된 웹훅입니다. 설정을 갱신하시겠습니까?\n(DB 초기화 등으로 시크릿이 변경된 경우 갱신이 필요합니다.)')) {
+                                                    handleWebhookConnect(repo!.repository.owner, repo!.repository.name, e);
+                                                }
+                                            }}
+                                            className="text-[10px] font-medium px-2 py-1 text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-md flex items-center hover:bg-emerald-500/10 transition-all cursor-pointer"
+                                            title="클릭하여 웹훅 설정 갱신"
+                                        >
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                                            Webhook Connected
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => handleWebhookConnect(repo!.repository.owner, repo!.repository.name, e)}
+                                            className="text-[10px] font-medium px-2 py-1 rounded-md text-blue-400 bg-blue-500/15 border border-blue-500/20 hover:bg-blue-500/25 hover:border-blue-500/30 transition-all duration-200"
+                                        >
+                                            + Webhook Connect
+                                        </button>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/settings?owner=${encodeURIComponent(repo!.repository.owner)}&repository=${encodeURIComponent(repo!.repository.name)}`);
+                                    }}
+                                    className="p-1.5 rounded-md text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+                                    title="저장소 설정"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </button>
                             </>
                         )}
                     </div>
@@ -208,16 +223,7 @@ const RepositoryList: React.FC = () => {
                             </button>
                         </div>
 
-                        <button
-                            onClick={() => navigate('/settings')}
-                            className="flex items-center space-x-2 px-3 py-1.5 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span>Settings</span>
-                        </button>
+                        <span className="text-[12px] text-slate-500">저장소별 설정은 각 저장소 카드에서 열 수 있습니다.</span>
                     </div>
                 </>
             )}

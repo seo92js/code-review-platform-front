@@ -13,7 +13,13 @@ const TARGET_PRESETS = [
     { label: 'All Files', value: '**/*' },
 ];
 
-const RuleManagement: React.FC = () => {
+interface RuleManagementProps {
+    owner: string;
+    repository: string;
+    readOnly?: boolean;
+}
+
+const RuleManagement: React.FC<RuleManagementProps> = ({ owner, repository, readOnly = false }) => {
     const [rules, setRules] = useState<Rule[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,11 +31,11 @@ const RuleManagement: React.FC = () => {
 
     useEffect(() => {
         loadRules();
-    }, []);
+    }, [owner, repository]);
 
     const loadRules = async () => {
         try {
-            const data = await getRules();
+            const data = await getRules(owner, repository);
             setRules(data);
         } catch (error) {
             toast.error('규칙 목록을 불러오는데 실패했습니다.');
@@ -66,10 +72,10 @@ const RuleManagement: React.FC = () => {
 
         try {
             if (editingRule) {
-                await updateRule(editingRule.id, { content, targetFilePattern: targetPattern });
+                await updateRule(owner, repository, editingRule.id, { content, targetFilePattern: targetPattern });
                 toast.success('규칙이 수정되었습니다.');
             } else {
-                await createRule({ content, targetFilePattern: targetPattern });
+                await createRule(owner, repository, { content, targetFilePattern: targetPattern });
                 toast.success('새로운 규칙이 추가되었습니다.');
             }
             handleCloseModal();
@@ -82,7 +88,7 @@ const RuleManagement: React.FC = () => {
     const handleDeleteRule = async (id: number) => {
         if (!confirm('정말 삭제하시겠습니까?')) return;
         try {
-            await deleteRule(id);
+            await deleteRule(owner, repository, id);
             toast.success('규칙이 삭제되었습니다.');
             setRules(rules.filter(r => r.id !== id));
         } catch (error) {
@@ -92,7 +98,7 @@ const RuleManagement: React.FC = () => {
 
     const handleToggleRule = async (id: number) => {
         try {
-            const updatedRule = await toggleRule(id);
+            const updatedRule = await toggleRule(owner, repository, id);
             setRules(rules.map(r => r.id === id ? updatedRule : r));
         } catch (error) {
             toast.error('상태 변경 실패');
@@ -111,6 +117,7 @@ const RuleManagement: React.FC = () => {
                 <div className="flex justify-end pt-1">
                     <button
                         onClick={() => handleOpenModal()}
+                        disabled={readOnly}
                         className="px-3 py-1.5 text-[12px] font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/20 transition-colors"
                     >
                         + 규칙 추가
@@ -122,7 +129,9 @@ const RuleManagement: React.FC = () => {
                 {rules.length === 0 ? (
                     <div className="text-center py-8 bg-white/[0.02] border border-white/5 rounded-xl">
                         <p className="text-[13px] text-slate-500">등록된 규칙이 없습니다.</p>
-                        <button onClick={() => handleOpenModal()} className="mt-2 text-[12px] text-blue-400 hover:underline">첫 번째 규칙을 추가해보세요</button>
+                        {!readOnly && (
+                            <button onClick={() => handleOpenModal()} className="mt-2 text-[12px] text-blue-400 hover:underline">첫 번째 규칙을 추가해보세요</button>
+                        )}
                     </div>
                 ) : (
                     rules.map(rule => (
@@ -144,19 +153,20 @@ const RuleManagement: React.FC = () => {
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => handleToggleRule(rule.id)}
+                                        disabled={readOnly}
                                         className={`relative w-9 h-5 rounded-full transition-colors ${rule.isEnabled ? 'bg-blue-500' : 'bg-slate-700'}`}
                                     >
                                         <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${rule.isEnabled ? 'translate-x-4' : ''}`} />
                                     </button>
 
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 border-l border-white/10 pl-3">
+                                    {!readOnly && <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 border-l border-white/10 pl-3">
                                         <button onClick={() => handleOpenModal(rule)} className="text-slate-500 hover:text-white">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                         </button>
                                         <button onClick={() => handleDeleteRule(rule.id)} className="text-slate-500 hover:text-rose-400">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
-                                    </div>
+                                    </div>}
                                 </div>
                             </div>
                         </div>
