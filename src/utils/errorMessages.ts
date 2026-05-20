@@ -4,6 +4,7 @@ const ERROR_MESSAGES: Record<string, string> = {
     RUNTIME_EX: '요청 처리 중 오류가 발생했습니다.',
     OPEN_AI_KEY_NOT_SET: 'OpenAI API 키가 설정되지 않았습니다. 설정에서 키를 등록해주세요.',
     INVALID_GITHUB_TOKEN: 'GitHub 토큰이 유효하지 않습니다. 다시 로그인해주세요.',
+    GITHUB_RATE_LIMIT: 'GitHub API 호출 한도에 도달했습니다. 잠시 후 다시 시도해주세요.',
     SECURITY_VIOLATION: '보안 검증에 실패했습니다.',
     GITHUB_API_ERROR: 'GitHub API 호출 중 오류가 발생했습니다.',
     WEBHOOK_PROCESSING_ERROR: '웹훅 처리 중 오류가 발생했습니다.',
