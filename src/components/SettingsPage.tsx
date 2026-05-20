@@ -358,6 +358,19 @@ const SettingsPage: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
+
+                            <label className="flex items-center space-x-3.5 cursor-pointer p-3 rounded-lg bg-white/[0.02] border border-white/5">
+                                <input
+                                    type="checkbox"
+                                    checked={agreed}
+                                    onChange={(e) => setAgreed(e.target.checked)}
+                                    className="w-4 h-4 text-blue-500 bg-white/5 border-white/20 rounded focus:ring-blue-500 focus:ring-1 cursor-pointer"
+                                />
+                                <span className="text-[12px] text-slate-400 leading-relaxed text-left">
+                                    API 키는 암호화 저장되며, 본인 계정에서만 사용됩니다.<br />
+                                    코드 리뷰 시 OpenAI API 사용 비용이 발생합니다.
+                                </span>
+                            </label>
                         </div>
                     </div>
 
